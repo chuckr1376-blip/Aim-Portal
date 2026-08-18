@@ -432,25 +432,6 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
     </section>
 
 
-    <section class="panel" id="msgPanel">
-      <div class="panel-head">
-        <h3>Messages</h3>
-        <div class="sub">Anything that isn't a parts or service request.</div>
-      </div>
-      <div class="panel-body">
-        <div class="msgbox">
-          <label for="mgBody">Write to AIM</label>
-          <textarea id="mgBody"
-            placeholder="Need support &mdash; 2 AGVs down on the north line since this morning."></textarea>
-          <div class="msgfoot">
-            <span class="hint">Dated today, sent to AIM service.</span>
-            <button class="btn" onclick="sendLog()">Send message</button>
-          </div>
-        </div>
-        <div id="mgErr"></div>
-        <div id="mgFeed"></div>
-      </div>
-    </section>
 
     <section class="panel">
       <div class="panel-head">
@@ -594,7 +575,6 @@ let domains = [];     // staff: the allowlist
 let blocks = [];      // support hour blocks (mine, or all if staff)
 let entries = [];     // time logged against them
 let balances = [];    // staff: per-account rollup
-let mlogs = [];       // messages between this account and AIM
 
 /* ---------- messages ---------- */
 function gateErr(msg){ $("gateErr").innerHTML = '<div class="err">'+esc(msg)+'</div>'; }
@@ -719,7 +699,6 @@ async function boot(){
     if(!rows.length) addRow();
     await loadMine();
     await loadSupport();
-    await loadMessages();
   }
 }
 
@@ -1002,67 +981,6 @@ async function rmDomain(d, orgId){
     '. Existing users keep access until deactivated.</div>';
 }
 
-
-/* ============================================================
-   Messages
-
-   The same feed AIM sees on their side, minus anything they
-   marked internal. That filtering happens in the database, so
-   there is no way to reach the hidden entries from here.
-   ============================================================ */
-async function loadMessages(){
-  if(me.staff || !me.org_id){ $("msgPanel").hidden = true; return; }
-
-  const { data, error } = await sb.from("account_log")
-    .select("id, body, internal, from_aim, author, created_at")
-    .order("created_at", { ascending:false });
-
-  if(error){
-    $("mgFeed").innerHTML = '<div class="err">'+esc(humanError(error))+'</div>';
-    return;
-  }
-  mlogs = data || [];
-  renderMessages();
-}
-
-function renderMessages(){
-  if(!mlogs.length){
-    $("mgFeed").innerHTML = '<div class="empty">No messages yet.</div>';
-    return;
-  }
-  $("mgFeed").innerHTML = mlogs.map(l => {
-    const d = new Date(l.created_at);
-    return `<div class="lg ${l.from_aim ? "aim" : "you"}">
-      <div class="lg-d">
-        <b>${d.getDate()}</b>
-        <span>${d.toLocaleString(undefined,{month:"short"}).toUpperCase()}</span>
-      </div>
-      <div class="lg-b">
-        <div class="lg-w">${l.from_aim
-          ? "AIM &middot; " + esc(l.author || "Service")
-          : esc(me.org_name || "Your company") + " &middot; " + esc(l.author || "")}</div>
-        <div class="lg-t">${esc(l.body)}</div>
-      </div>
-    </div>`;
-  }).join("");
-}
-
-async function sendLog(){
-  const body = $("mgBody").value.trim();
-  const fail = m => $("mgErr").innerHTML = '<div class="err">'+esc(m)+'</div>';
-  $("mgErr").innerHTML = "";
-
-  if(!body) return fail("Type your message first.");
-
-  // internal is false: anything a customer writes is visible to both sides
-  const { error } = await sb.from("account_log")
-    .insert({ org_id: me.org_id, body, internal: false });
-  if(error) return fail(humanError(error));
-
-  $("mgBody").value = "";
-  await loadMessages();
-  $("mgErr").innerHTML = '<div class="toast">Sent to AIM service.</div>';
-}
 
 /* ============================================================
    Support hours
@@ -1453,7 +1371,7 @@ async function refreshAfterMessage(reqId){
 Object.assign(window, { signIn, signOut, addRow, rmRow, setF, submitReq,
   setStatus, openAcct, closeAcct, addDomain, rmDomain,
   addBlock, logTime, claimSite, assignUser,
-  loadThread, postMsg, editMsg, saveMsg, sendLog });
+  loadThread, postMsg, editMsg, saveMsg });
 
 /* ---------- go ---------- */
 render();
