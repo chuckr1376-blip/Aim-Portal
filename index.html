@@ -34,17 +34,17 @@
     display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:20px;
   }
   .bflag{height:30px;width:auto;display:block}
-  .bword{height:42px;width:auto;display:block;margin:0 auto 0 0;max-width:100%}
+  .bword{height:62px;width:auto;display:block;margin:0 auto;max-width:100%}
   .baim{height:56px;width:auto;display:block;margin-left:auto}
   @media (max-width:900px){
-    .bword{height:36px}
+    .bword{height:54px}
     .baim{height:50px}
     .bflag{height:24px}
   }
   @media (max-width:620px){
     .banner-in{grid-template-columns:auto auto;justify-content:space-between;
                row-gap:12px;padding:14px 18px}
-    .bword{grid-column:1/-1;order:3;margin:0;height:30px}
+    .bword{grid-column:1/-1;order:3;margin:0;height:44px}
     .baim{height:44px}
   }
 
@@ -254,18 +254,6 @@
   .lg.you .lg-d{border-right:1px solid #d5e0ee}
   .lg.you .lg-d b{color:#1d4e89} .lg.you .lg-d span{color:#5b7ea8}
   .lg.you .lg-w{color:#1d4e89}   .lg.you .lg-t{color:#16233a}
-
-  .msg-form[hidden]{display:none}
-  .linkbtn.tiny{font-size:12.5px;padding:2px 0;background:none;border:0;
-    color:var(--navy);font-weight:600;cursor:pointer;text-decoration:underline;
-    text-underline-offset:3px}
-  .linkbtn.tiny:hover{color:#c2570a}
-
-  /* account name, below the bar and above the work */
-  .acctname{margin:0 0 14px;font-size:26px;font-weight:700;color:var(--navy);
-            letter-spacing:-.3px}
-  .acctname[hidden]{display:none}
-  @media (max-width:620px){ .acctname{font-size:21px;margin-bottom:11px} }
 </style>
 </head>
 <body>
@@ -359,15 +347,13 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
   <div class="bar-in">
     <h1>Client Portal</h1>
     <div class="who" id="who" hidden>
-      <div class="who-org"><b id="whoOrg"></b></div>
+      <div class="who-org">Signed in &middot; <b id="whoOrg"></b></div>
       <button class="linkbtn" onclick="signOut()">Sign out</button>
     </div>
   </div>
 </div>
 
 <main>
-
-  <h2 class="acctname" id="acctName" hidden></h2>
 
   <section class="gate" id="gate">
     <h2>Sign in</h2>
@@ -446,19 +432,33 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
     </section>
 
 
-
-
     <section class="panel" id="msgPanel">
       <div class="panel-head">
-        <h3>Action log</h3>
-        <div class="sub">Requests, and what AIM did about them.</div>
+        <h3>Messages</h3>
+        <div class="sub">Anything that isn't a parts or service request.</div>
       </div>
       <div class="panel-body">
+        <div class="msgbox">
+          <label for="mgBody">Write to AIM</label>
+          <textarea id="mgBody"
+            placeholder="Need support &mdash; 2 AGVs down on the north line since this morning."></textarea>
+          <div class="msgfoot">
+            <span class="hint">Dated today, sent to AIM service.</span>
+            <button class="btn" onclick="sendLog()">Send message</button>
+          </div>
+        </div>
         <div id="mgErr"></div>
         <div id="mgFeed"></div>
       </div>
     </section>
 
+    <section class="panel">
+      <div class="panel-head">
+        <h3>Your requests</h3>
+        <div class="sub" id="cnt"></div>
+      </div>
+      <div id="list"><div class="empty">Loading&hellip;</div></div>
+    </section>
   </div>
 
   <div id="staff" hidden>
@@ -594,6 +594,7 @@ let domains = [];     // staff: the allowlist
 let blocks = [];      // support hour blocks (mine, or all if staff)
 let entries = [];     // time logged against them
 let balances = [];    // staff: per-account rollup
+let mlogs = [];       // messages between this account and AIM
 
 /* ---------- messages ---------- */
 function gateErr(msg){ $("gateErr").innerHTML = '<div class="err">'+esc(msg)+'</div>'; }
@@ -701,11 +702,7 @@ async function boot(){
     await sb.from("profiles").update({ full_name: u.user_metadata.full_name }).eq("id", u.id);
   }
 
-  $("whoOrg").textContent = me.name;
-  if(!staff && me.org_name){
-    $("acctName").textContent = me.org_name;
-    $("acctName").hidden = false;
-  }
+  $("whoOrg").textContent = staff ? "AIM Service" : (me.org_name || "\u2014");
   $("who").hidden = false;
   $("gate").hidden = true;
 
@@ -714,7 +711,6 @@ async function boot(){
     $("staff").hidden = false;
     await loadStaff();
     await loadSupport();
-    await loadMessages();
   }else if(!me.org_id){
     // domain serves several sites; make them choose before anything else
     await showSitePicker();
@@ -722,8 +718,8 @@ async function boot(){
     $("portal").hidden = false;
     if(!rows.length) addRow();
     await loadMine();
-    await loadMessages();
     await loadSupport();
+    await loadMessages();
   }
 }
 
@@ -803,9 +799,10 @@ async function loadMine(){
     .select("id, ref, status, created_at, profiles(full_name), orgs(name), request_lines(item,kind,qty,serial)")
     .order("created_at", { ascending:false });
 
-  if(error){ $("mgFeed").innerHTML = '<div class="err">'+esc(humanError(error))+'</div>'; return; }
+  if(error){ $("list").innerHTML = '<div class="empty">'+esc(humanError(error))+'</div>'; return; }
 
   reqs = data || [];
+  renderList();
 }
 
 function lineList(ls){
@@ -814,6 +811,26 @@ function lineList(ls){
     ${l.serial ? ' <span class="mono">('+esc(l.serial)+')</span>' : ""}</li>`).join("")}</ul>`;
 }
 
+function renderList(){
+  if(me.staff) return;
+  $("cnt").textContent = reqs.length ? reqs.length+" total" : "";
+  if(!reqs.length){
+    $("list").innerHTML = '<div class="empty">Nothing submitted yet.</div>'; return;
+  }
+  $("list").innerHTML = reqs.map(r=>`
+    <div class="rec">
+      <div class="rec-top">
+        <span class="rid mono">${esc(r.ref)}</span>
+        <span class="tag">${esc(r.status)}</span>
+        <span class="rdate">${fmt(r.created_at)} &middot; ${esc(r.profiles?.full_name||"")}</span>
+      </div>
+      ${lineList(r.request_lines)}
+      ${r.po_number?'<div class="po-line">PO '+esc(r.po_number)+'</div>':""}
+      <div id="th_${r.id}" class="thread-mount"></div>
+    </div>`).join("");
+
+  reqs.forEach(r => loadThread(r.id, "th_"+r.id));
+}
 
 /* ============================================================
    Staff: queue, accounts, allowlist
@@ -987,14 +1004,12 @@ async function rmDomain(d, orgId){
 
 
 /* ============================================================
-   Action log
+   Messages
 
-   The same feed AIM sees, minus anything they marked internal.
-   That filtering happens in the database, so the hidden entries
-   cannot be reached from here.
+   The same feed AIM sees on their side, minus anything they
+   marked internal. That filtering happens in the database, so
+   there is no way to reach the hidden entries from here.
    ============================================================ */
-let mlogs = [];
-
 async function loadMessages(){
   if(me.staff || !me.org_id){ $("msgPanel").hidden = true; return; }
 
@@ -1011,39 +1026,11 @@ async function loadMessages(){
 }
 
 function renderMessages(){
-  const feed = [
-    ...reqs.map(r  => ({ at: r.created_at, kind: "req", row: r })),
-    ...mlogs.map(l => ({ at: l.created_at, kind: "log", row: l }))
-  ].sort((x,y) => new Date(y.at) - new Date(x.at));
-
-  if(!feed.length){
-    $("mgFeed").innerHTML =
-      '<div class="empty">Nothing yet. Submit a request above and it appears here.</div>';
+  if(!mlogs.length){
+    $("mgFeed").innerHTML = '<div class="empty">No messages yet.</div>';
     return;
   }
-
-  $("mgFeed").innerHTML = feed.map(f =>
-    f.kind === "req" ? reqCard(f.row) : logCard(f.row)).join("");
-
-  reqs.forEach(r => loadThread(r.id, "th_"+r.id));
-}
-
-/* a submitted request, with AIM's replies beneath it */
-function reqCard(r){
-  return `<div class="rec">
-    <div class="rec-top">
-      <span class="rid mono">${esc(r.ref)}</span>
-      <span class="tag">${esc(r.status)}</span>
-      <span class="rdate">${fmt(r.created_at)} &middot; ${esc(r.profiles?.full_name||"")}</span>
-    </div>
-    ${lineList(r.request_lines)}
-    ${r.po_number?'<div class="po-line">PO '+esc(r.po_number)+'</div>':""}
-    <div id="th_${r.id}" class="thread-mount"></div>
-  </div>`;
-}
-
-function logCard(l){
-  return [l].map(l => {
+  $("mgFeed").innerHTML = mlogs.map(l => {
     const d = new Date(l.created_at);
     return `<div class="lg ${l.from_aim ? "aim" : "you"}">
       <div class="lg-d">
@@ -1060,6 +1047,22 @@ function logCard(l){
   }).join("");
 }
 
+async function sendLog(){
+  const body = $("mgBody").value.trim();
+  const fail = m => $("mgErr").innerHTML = '<div class="err">'+esc(m)+'</div>';
+  $("mgErr").innerHTML = "";
+
+  if(!body) return fail("Type your message first.");
+
+  // internal is false: anything a customer writes is visible to both sides
+  const { error } = await sb.from("account_log")
+    .insert({ org_id: me.org_id, body, internal: false });
+  if(error) return fail(humanError(error));
+
+  $("mgBody").value = "";
+  await loadMessages();
+  $("mgErr").innerHTML = '<div class="toast">Sent to AIM service.</div>';
+}
 
 /* ============================================================
    Support hours
@@ -1387,9 +1390,7 @@ function threadHtml(reqId, msgs){
           <div class="msg-b" id="mb_${m.id}">${esc(m.body)}</div>
         </div>`).join("") || '<div class="msg-empty">No messages yet.</div>'}
 
-      <button class="linkbtn tiny" id="ro_${reqId}"
-              onclick="openReply(${reqId})">Reply to AIM</button>
-      <div class="msg-form" id="mf_${reqId}" hidden>
+      <div class="msg-form">
         <textarea id="mt_${reqId}" rows="2" placeholder="${
           me.staff ? "Reply \u2014 quote a PO or hours if relevant"
                    : "Add a note or reply to AIM"}"></textarea>
@@ -1402,12 +1403,6 @@ function threadHtml(reqId, msgs){
       </div>
       <div id="me_${reqId}"></div>
     </div>`;
-}
-
-function openReply(reqId){
-  $("ro_"+reqId).hidden = true;
-  $("mf_"+reqId).hidden = false;
-  $("mt_"+reqId).focus();
 }
 
 async function postMsg(reqId){
@@ -1458,7 +1453,7 @@ async function refreshAfterMessage(reqId){
 Object.assign(window, { signIn, signOut, addRow, rmRow, setF, submitReq,
   setStatus, openAcct, closeAcct, addDomain, rmDomain,
   addBlock, logTime, claimSite, assignUser,
-  loadThread, postMsg, editMsg, saveMsg, openReply });
+  loadThread, postMsg, editMsg, saveMsg, sendLog });
 
 /* ---------- go ---------- */
 render();
