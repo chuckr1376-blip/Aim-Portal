@@ -336,6 +336,15 @@ tr:last-child td{border-bottom:0}
 .entry.client{border-left-color:#1d4e89;background:#eef3fa}
 .entry.client .entry-h{color:#1d4e89}
 .entry.client .entry-b{color:#16233a}
+
+/* ---------- rename ---------- */
+.rn[hidden]{display:none}
+.rn{background:none;border:0;color:#b6bfcc;font-size:15px;cursor:pointer;
+  padding:2px 5px;line-height:1}
+.rn:hover{color:var(--orange)}
+.renaming{display:flex;gap:8px;align-items:center;flex:1 1 260px;min-width:0}
+.renaming input{font-family:"Barlow Condensed",sans-serif;font-size:22px;
+  font-weight:600;color:var(--navy);padding:5px 10px;max-width:340px}
 </style>
 </head>
 <body>
@@ -705,7 +714,9 @@ function renderAccount(){
   $("detail").dataset.empty = "0";
   $("detail").innerHTML = `
     <div class="acct-h">
-      <span class="nm">${esc(o.name)}</span>
+      <span class="nm" id="acctNm">${esc(o.name)}</span>
+      <button class="rn" id="rnBtn" title="Rename this account"
+              onclick="startRename()" aria-label="Rename account">&#9998;</button>
       ${ds.map(d => `<span class="dm">${esc(d)}</span>`).join("")}
       <button class="btn ghost sm" style="margin-left:auto"
               onclick="backToQueue()">All requests</button>
@@ -725,6 +736,33 @@ function renderAccount(){
   if(tab === "requests") rs.forEach(r => loadThread(r.id, "th_"+r.id));
 }
 function setTab(k){ tab = k; renderAccount(); }
+
+/* ---------- rename ---------- */
+function startRename(){
+  const o = orgs.find(x => x.id === sel); if(!o) return;
+  const el = $("acctNm");
+  el.outerHTML = `<span class="renaming">
+      <input id="rnIn" value="${esc(o.name)}" spellcheck="false"
+             onkeydown="if(event.key==='Enter')saveRename();
+                        if(event.key==='Escape')renderAccount();">
+      <button class="btn sm" onclick="saveRename()">Save</button>
+      <button class="btn ghost sm" onclick="renderAccount()">Cancel</button>
+    </span>`;
+  $("rnBtn").hidden = true;
+  const i = $("rnIn"); i.focus(); i.select();
+}
+
+async function saveRename(){
+  const name = $("rnIn").value.trim();
+  if(!name) return say("Give the account a name.", true);
+
+  const { error } = await sb.rpc("rename_account",
+    { p_org_id: sel, p_name: name });
+  if(error) return say(humanError(error), true);
+
+  await loadAll();
+  say("Renamed to " + name + ". History kept.");
+}
 
 const logsOf = id => logs.filter(l => l.org_id === id);
 
@@ -1153,7 +1191,7 @@ async function refreshAfterMessage(reqId){ await loadAll(); }
 Object.assign(window, { signIn, signOut, pick, backToQueue, setTab,
   createAccount, addDomain, rmDomain, authorize, revoke, toggleActive,
   setStatus, addBlock, logTime, loadThread, postMsg, editMsg, saveMsg,
-  openReply, addLog, toggleAdd });
+  openReply, addLog, toggleAdd, startRename, saveRename });
 
 $("find").oninput = e => { filter = e.target.value; renderRail(); };
 boot();
