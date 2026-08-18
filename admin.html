@@ -345,6 +345,12 @@ tr:last-child td{border-bottom:0}
 .renaming{display:flex;gap:8px;align-items:center;flex:1 1 260px;min-width:0}
 .renaming input{font-family:"Barlow Condensed",sans-serif;font-size:22px;
   font-weight:600;color:var(--navy);padding:5px 10px;max-width:340px}
+
+/* delete controls sit quiet until hovered */
+.blk-h .rm,.ent .rm{opacity:.35;margin-left:7px}
+.blk:hover .rm,.ent:hover .rm,.entry:hover .rm{opacity:1}
+.entry-h .rm{opacity:.35;margin-left:5px;font-size:15px}
+.ent .em{display:inline-flex;align-items:center;gap:2px}
 </style>
 </head>
 <body>
@@ -805,6 +811,7 @@ function logHtml(l){
            : (l.internal ? "INTERNAL NOTE" : "NOTE \u2014 CUSTOMER CAN SEE")}</b>
       <span class="tagi">${esc(l.author || "AIM")}</span>
       <span style="margin-left:auto">${fmt(l.created_at)}</span>
+      <button class="rm" title="Delete this note" onclick="delLog(${l.id})">&times;</button>
     </div>
     <div class="entry-b">${esc(l.body)}</div>
   </div>`;
@@ -933,10 +940,10 @@ function tabHours(){
         <div><label for="bkHrs">Hours</label>
           <input id="bkHrs" type="number" step="0.5" min="0.5" value="20" class="mono"></div>
         <div><label for="bkRate">Rate</label>
-          <input id="bkRate" type="number" step="1" min="0" value="180" class="mono"></div>
+          <input id="bkRate" type="number" step="1" min="0" value="195" class="mono"></div>
         <div><label for="bkPo">PO</label>
           <input id="bkPo" class="po" placeholder="optional"></div>
-        <button class="btn orange" onclick="addBlock()">Sell block</button>
+        <button class="btn orange" onclick="addBlock()">Create bank</button>
       </div>
     </div>`;
 
@@ -968,15 +975,15 @@ function tabHours(){
     ${open.length ? '<p class="note">Quarter hours. The customer sees the description.</p>'
       : '<p class="note">Every block is used up. Sell another before logging more time.</p>'}
 
-    <div class="sub-h">Sell more hours</div>
+    <div class="sub-h">Create another bank</div>
     <div class="form-row">
       <div class="f" style="flex:0 0 100px"><label for="bkHrs">Hours</label>
         <input id="bkHrs" type="number" step="0.5" min="0.5" value="20" class="mono"></div>
       <div class="f" style="flex:0 0 100px"><label for="bkRate">Rate</label>
-        <input id="bkRate" type="number" step="1" min="0" value="${rate||180}" class="mono"></div>
+        <input id="bkRate" type="number" step="1" min="0" value="${rate||195}" class="mono"></div>
       <div class="f"><label for="bkPo">PO</label>
         <input id="bkPo" placeholder="optional"></div>
-      <button class="btn ghost" onclick="addBlock()">Add block</button>
+      <button class="btn ghost" onclick="addBlock()">Create bank</button>
     </div>
 
     ${bl.map(b => `<div class="blk">
@@ -985,12 +992,56 @@ function tabHours(){
         <span class="sm">${b.po_number?"PO "+esc(b.po_number)+" \u00b7 ":""}${day(b.purchased_at)}</span>
         <span style="margin-left:auto;font-weight:600;color:${
           Number(b.hours_left)<=0?"var(--red)":"var(--navy)"}">${hrs(b.hours_left)} left</span>
+        <button class="rm" title="Delete this bank"
+                onclick="delBlock(${b.block_id})">&times;</button>
       </div>
       ${entries.filter(e => e.block_id === b.block_id).map(e => `
         <div class="ent"><span class="eh">${hrs(e.hours)}h</span>
           <span>${esc(e.description)}</span>
-          <span class="em">${esc(e.performed_by)} \u00b7 ${day(e.performed_at)}</span></div>`).join("")}
+          <span class="em">${esc(e.performed_by)} \u00b7 ${day(e.performed_at)}
+            <button class="rm" title="Delete this entry"
+                    onclick="delEntry(${e.id})">&times;</button></span></div>`).join("")}
     </div>`).join("")}`;
+}
+
+async function delBlock(id){
+  const b = blocks.find(x => x.block_id === id);
+  const used = Number(b.hours_purchased) - Number(b.hours_left);
+  if(!confirm(
+    "Delete this bank of " + hrs(b.hours_purchased) + " hours at " + money(b.rate) + "?\n\n" +
+    (used > 0
+      ? hrs(used) + " hours of logged time will be deleted with it.\n\n"
+      : "") +
+    "This can't be undone.")) return;
+
+  const { error } = await sb.rpc("delete_block", { p_id: id });
+  if(error) return say(humanError(error), true);
+  await loadAll();
+  say("Bank deleted.");
+}
+
+async function delEntry(id){
+  const e = entries.find(x => x.id === id);
+  if(!confirm(
+    "Delete this logged time?\n\n" + hrs(e.hours) + " hours \u2014 " + e.description +
+    "\n\nThose hours go back into the bank. This can't be undone.")) return;
+
+  const { error } = await sb.rpc("delete_entry", { p_id: id });
+  if(error) return say(humanError(error), true);
+  await loadAll();
+  say(hrs(e.hours) + " hours returned to the bank.");
+}
+
+async function delLog(id){
+  const l = logs.find(x => x.id === id);
+  if(!confirm("Delete this note?\n\n\"" +
+    (l.body.length > 90 ? l.body.slice(0,90) + "\u2026" : l.body) +
+    "\"\n\nThis can't be undone.")) return;
+
+  const { error } = await sb.rpc("delete_log", { p_id: id });
+  if(error) return say(humanError(error), true);
+  await loadAll();
+  say("Note deleted.");
 }
 
 async function addBlock(){
@@ -1191,7 +1242,8 @@ async function refreshAfterMessage(reqId){ await loadAll(); }
 Object.assign(window, { signIn, signOut, pick, backToQueue, setTab,
   createAccount, addDomain, rmDomain, authorize, revoke, toggleActive,
   setStatus, addBlock, logTime, loadThread, postMsg, editMsg, saveMsg,
-  openReply, addLog, toggleAdd, startRename, saveRename });
+  openReply, addLog, toggleAdd, startRename, saveRename,
+  delBlock, delEntry, delLog });
 
 $("find").oninput = e => { filter = e.target.value; renderRail(); };
 boot();
