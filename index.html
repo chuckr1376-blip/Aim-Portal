@@ -260,6 +260,12 @@
     color:var(--navy);font-weight:600;cursor:pointer;text-decoration:underline;
     text-underline-offset:3px}
   .linkbtn.tiny:hover{color:#c2570a}
+
+  /* account name, below the bar and above the work */
+  .acctname{margin:0 0 14px;font-size:26px;font-weight:700;color:var(--navy);
+            letter-spacing:-.3px}
+  .acctname[hidden]{display:none}
+  @media (max-width:620px){ .acctname{font-size:21px;margin-bottom:11px} }
 </style>
 </head>
 <body>
@@ -353,13 +359,15 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
   <div class="bar-in">
     <h1>Client Portal</h1>
     <div class="who" id="who" hidden>
-      <div class="who-org">Signed in &middot; <b id="whoOrg"></b></div>
+      <div class="who-org"><b id="whoOrg"></b></div>
       <button class="linkbtn" onclick="signOut()">Sign out</button>
     </div>
   </div>
 </div>
 
 <main>
+
+  <h2 class="acctname" id="acctName" hidden></h2>
 
   <section class="gate" id="gate">
     <h2>Sign in</h2>
@@ -693,7 +701,11 @@ async function boot(){
     await sb.from("profiles").update({ full_name: u.user_metadata.full_name }).eq("id", u.id);
   }
 
-  $("whoOrg").textContent = staff ? "AIM Service" : (me.org_name || "\u2014");
+  $("whoOrg").textContent = me.name;
+  if(!staff && me.org_name){
+    $("acctName").textContent = me.org_name;
+    $("acctName").hidden = false;
+  }
   $("who").hidden = false;
   $("gate").hidden = true;
 
