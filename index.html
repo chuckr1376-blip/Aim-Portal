@@ -34,17 +34,17 @@
     display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:20px;
   }
   .bflag{height:30px;width:auto;display:block}
-  .bword{height:62px;width:auto;display:block;margin:0 auto;max-width:100%}
+  .bword{height:42px;width:auto;display:block;margin:0 auto 0 0;max-width:100%}
   .baim{height:56px;width:auto;display:block;margin-left:auto}
   @media (max-width:900px){
-    .bword{height:54px}
+    .bword{height:36px}
     .baim{height:50px}
     .bflag{height:24px}
   }
   @media (max-width:620px){
     .banner-in{grid-template-columns:auto auto;justify-content:space-between;
                row-gap:12px;padding:14px 18px}
-    .bword{grid-column:1/-1;order:3;margin:0;height:44px}
+    .bword{grid-column:1/-1;order:3;margin:0;height:30px}
     .baim{height:44px}
   }
 
@@ -254,6 +254,18 @@
   .lg.you .lg-d{border-right:1px solid #d5e0ee}
   .lg.you .lg-d b{color:#1d4e89} .lg.you .lg-d span{color:#5b7ea8}
   .lg.you .lg-w{color:#1d4e89}   .lg.you .lg-t{color:#16233a}
+
+  .msg-form[hidden]{display:none}
+  .linkbtn.tiny{font-size:12.5px;padding:2px 0;background:none;border:0;
+    color:var(--navy);font-weight:600;cursor:pointer;text-decoration:underline;
+    text-underline-offset:3px}
+  .linkbtn.tiny:hover{color:#c2570a}
+
+  /* account name, below the bar and above the work */
+  .acctname{margin:0 0 14px;font-size:26px;font-weight:700;color:var(--navy);
+            letter-spacing:-.3px}
+  .acctname[hidden]{display:none}
+  @media (max-width:620px){ .acctname{font-size:21px;margin-bottom:11px} }
 </style>
 </head>
 <body>
@@ -347,13 +359,15 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
   <div class="bar-in">
     <h1>Client Portal</h1>
     <div class="who" id="who" hidden>
-      <div class="who-org">Signed in &middot; <b id="whoOrg"></b></div>
+      <div class="who-org"><b id="whoOrg"></b></div>
       <button class="linkbtn" onclick="signOut()">Sign out</button>
     </div>
   </div>
 </div>
 
 <main>
+
+  <h2 class="acctname" id="acctName" hidden></h2>
 
   <section class="gate" id="gate">
     <h2>Sign in</h2>
@@ -432,121 +446,19 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
     </section>
 
 
+
+
     <section class="panel" id="msgPanel">
       <div class="panel-head">
-        <h3>Messages</h3>
-        <div class="sub">Anything that isn't a parts or service request.</div>
+        <h3>Action log</h3>
+        <div class="sub">Requests, and what AIM did about them.</div>
       </div>
       <div class="panel-body">
-        <div class="msgbox">
-          <label for="mgBody">Write to AIM</label>
-          <textarea id="mgBody"
-            placeholder="Need support &mdash; 2 AGVs down on the north line since this morning."></textarea>
-          <div class="msgfoot">
-            <span class="hint">Dated today, sent to AIM service.</span>
-            <button class="btn" onclick="sendLog()">Send message</button>
-          </div>
-        </div>
         <div id="mgErr"></div>
         <div id="mgFeed"></div>
       </div>
     </section>
 
-    <section class="panel">
-      <div class="panel-head">
-        <h3>Your requests</h3>
-        <div class="sub" id="cnt"></div>
-      </div>
-      <div id="list"><div class="empty">Loading&hellip;</div></div>
-    </section>
-  </div>
-
-  <div id="staff" hidden>
-    <section class="panel">
-      <div class="panel-head">
-        <h3>Service queue &mdash; all accounts</h3>
-        <div class="sub" id="scnt"></div>
-      </div>
-      <div id="squeue"></div>
-    </section>
-
-    <section class="panel">
-      <div class="panel-head">
-        <h3>Accounts</h3>
-        <div class="sub">Click an account to view its users, domains and history.</div>
-      </div>
-      <table class="admtbl">
-        <thead><tr><th>Account</th><th>Domains</th><th>Users</th>
-                   <th>Open</th><th>Last activity</th></tr></thead>
-        <tbody id="acctRows"></tbody>
-      </table>
-    </section>
-
-    <section class="panel" id="acctDetail" hidden>
-      <div class="panel-head">
-        <h3 id="adName"></h3>
-        <button class="linkbtn" style="margin-left:auto;border-color:#ccd3da;color:#5d6874"
-                onclick="closeAcct()">Close</button>
-      </div>
-      <div class="panel-body" id="adBody"></div>
-    </section>
-
-
-    <section class="panel">
-      <div class="panel-head">
-        <h3>Support hours &mdash; all accounts</h3>
-        <div class="sub">Click an account above to add hours or log time.</div>
-      </div>
-      <table class="admtbl">
-        <thead><tr><th>Account</th><th>Purchased</th><th>Used</th>
-                   <th>Remaining</th><th>Value left</th></tr></thead>
-        <tbody id="supRows"></tbody>
-      </table>
-    </section>
-
-
-    <section class="panel" id="unPanel" hidden>
-      <div class="panel-head">
-        <h3>Waiting for an account</h3>
-        <div class="sub">Signed up but never picked a site. Assign them here.</div>
-      </div>
-      <table class="admtbl">
-        <thead><tr><th>Name</th><th>Signed up</th><th>Account</th><th class="c-x"></th></tr></thead>
-        <tbody id="unRows"></tbody>
-      </table>
-    </section>
-
-    
-
-    <section class="panel">
-      <div class="panel-head">
-        <h3>Account domains</h3>
-        <div class="sub">Anyone with an email at these domains can create an account.</div>
-      </div>
-      <div class="panel-body">
-        <div id="admErr"></div>
-        <div class="admform">
-          <div class="field">
-            <label for="adDom">Email domain</label>
-            <input id="adDom" placeholder="customer.com" class="mono">
-          </div>
-          <div class="field">
-            <label for="adOrg">Account</label>
-            <input id="adOrg" list="orgList" placeholder="Company name">
-            <datalist id="orgList"></datalist>
-          </div>
-          <button class="btn" onclick="addDomain()">Add domain</button>
-        </div>
-        <p class="note" style="margin-top:4px">
-          Type an existing account name to add another domain to it &mdash; large
-          customers often have several.
-        </p>
-      </div>
-      <table class="admtbl">
-        <thead><tr><th>Domain</th><th>Account</th><th class="c-x"></th></tr></thead>
-        <tbody id="domRows"></tbody>
-      </table>
-    </section>
   </div>
 
 </main>
@@ -585,16 +497,11 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g,
 const fmt = d => new Date(d).toLocaleString(undefined,
   {month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"});
 
-let me = null;        // { id, email, name, org_id, org_name, staff }
+let me = null;        // { id, email, name, org_id, org_name }
 let rows = [];        // the new-request lines being typed
 let reqs = [];        // this user's request history
-let allReqs = [];     // staff: every account's requests
-let orgs = [];        // staff: accounts
-let domains = [];     // staff: the allowlist
-let blocks = [];      // support hour blocks (mine, or all if staff)
+let blocks = [];      // this account's support hour blocks
 let entries = [];     // time logged against them
-let balances = [];    // staff: per-account rollup
-let mlogs = [];       // messages between this account and AIM
 
 /* ---------- messages ---------- */
 function gateErr(msg){ $("gateErr").innerHTML = '<div class="err">'+esc(msg)+'</div>'; }
@@ -677,7 +584,13 @@ async function boot(){
   if(!session){ $("gate").hidden = false; return; }
 
   const u = session.user;
-  const staff = u.email.split("@")[1].toLowerCase() === STAFF_DOMAIN;
+
+  // AIM staff have their own page. Send them there rather than
+  // rendering a customer view they can't use.
+  if(u.email.split("@")[1].toLowerCase() === STAFF_DOMAIN){
+    location.replace("admin.html");
+    return;
+  }
 
   // the signup trigger made this row; read it back for the org
   const { data:prof } = await sb.from("profiles")
@@ -693,8 +606,7 @@ async function boot(){
     email: u.email,
     name: prof?.full_name || u.user_metadata?.full_name || u.email.split("@")[0],
     org_id: prof?.org_id || null,
-    org_name: prof?.orgs?.name || null,
-    staff
+    org_name: prof?.orgs?.name || null
   };
 
   // if the name never got captured, save it now
@@ -702,24 +614,23 @@ async function boot(){
     await sb.from("profiles").update({ full_name: u.user_metadata.full_name }).eq("id", u.id);
   }
 
-  $("whoOrg").textContent = staff ? "AIM Service" : (me.org_name || "\u2014");
+  $("whoOrg").textContent = me.name;
+  if(me.org_name){
+    $("acctName").textContent = me.org_name;
+    $("acctName").hidden = false;
+  }
   $("who").hidden = false;
   $("gate").hidden = true;
 
-  if(staff){
-    // AIM people land on the accounts, not on a request form
-    $("staff").hidden = false;
-    await loadStaff();
-    await loadSupport();
-  }else if(!me.org_id){
+  if(!me.org_id){
     // domain serves several sites; make them choose before anything else
     await showSitePicker();
   }else{
     $("portal").hidden = false;
     if(!rows.length) addRow();
     await loadMine();
-    await loadSupport();
     await loadMessages();
+    await loadSupport();
   }
 }
 
@@ -781,7 +692,6 @@ async function submitReq(){
 
     rows = []; addRow();
     await loadMine();
-    if(me.staff) await loadStaff();
     toast("<b>"+esc(req.ref)+"</b> submitted "+fmt(req.created_at)+
           ". AIM service has been notified.");
   }catch(e){
@@ -799,10 +709,9 @@ async function loadMine(){
     .select("id, ref, status, created_at, profiles(full_name), orgs(name), request_lines(item,kind,qty,serial)")
     .order("created_at", { ascending:false });
 
-  if(error){ $("list").innerHTML = '<div class="empty">'+esc(humanError(error))+'</div>'; return; }
+  if(error){ $("mgFeed").innerHTML = '<div class="err">'+esc(humanError(error))+'</div>'; return; }
 
   reqs = data || [];
-  renderList();
 }
 
 function lineList(ls){
@@ -811,207 +720,30 @@ function lineList(ls){
     ${l.serial ? ' <span class="mono">('+esc(l.serial)+')</span>' : ""}</li>`).join("")}</ul>`;
 }
 
-function renderList(){
-  if(me.staff) return;
-  $("cnt").textContent = reqs.length ? reqs.length+" total" : "";
-  if(!reqs.length){
-    $("list").innerHTML = '<div class="empty">Nothing submitted yet.</div>'; return;
-  }
-  $("list").innerHTML = reqs.map(r=>`
-    <div class="rec">
-      <div class="rec-top">
-        <span class="rid mono">${esc(r.ref)}</span>
-        <span class="tag">${esc(r.status)}</span>
-        <span class="rdate">${fmt(r.created_at)} &middot; ${esc(r.profiles?.full_name||"")}</span>
-      </div>
-      ${lineList(r.request_lines)}
-      ${r.po_number?'<div class="po-line">PO '+esc(r.po_number)+'</div>':""}
-      <div id="th_${r.id}" class="thread-mount"></div>
-    </div>`).join("");
-
-  reqs.forEach(r => loadThread(r.id, "th_"+r.id));
-}
 
 /* ============================================================
    Staff: queue, accounts, allowlist
    ============================================================ */
-async function loadStaff(){
-  const [q, o, d] = await Promise.all([
-    sb.from("requests")
-      .select("id, ref, status, created_at, org_id, profiles(full_name), orgs(name), request_lines(item,kind,qty,serial)")
-      .order("created_at", { ascending:false }),
-    sb.from("orgs").select("id, name, parent_id, site_label").order("name"),
-    sb.from("org_domains").select("domain, org_id")
-  ]);
 
-  if(q.error){ $("squeue").innerHTML = '<div class="empty">'+esc(humanError(q.error))+'</div>'; }
-  allReqs = q.data || [];
-  orgs    = (o.data || []).filter(x => x.name !== "America In Motion (internal)");
-  domains = d.data || [];
 
-  renderQueue(); renderAccounts(); renderDomains();
-  if(balances.length || blocks.length) renderSupportAll();
-  await loadUnassigned();
-}
 
-function renderQueue(){
-  const open = allReqs.filter(r => !["Closed","Cancelled"].includes(r.status)).length;
-  $("scnt").textContent = allReqs.length+" requests \u00b7 "+open+" open";
 
-  if(!allReqs.length){
-    $("squeue").innerHTML = '<div class="empty">No requests yet.</div>'; return;
-  }
-  $("squeue").innerHTML = allReqs.map(r=>`
-    <div class="qrow">
-      <div class="qorg">${esc(r.orgs?.name||"\u2014")}<small>${esc(r.profiles?.full_name||"")}</small></div>
-      <div class="qbody">
-        <span class="rid mono">${esc(r.ref)}</span>
-        <select class="sel" onchange="setStatus(${r.id},this.value)">
-          ${STATUSES.map(s=>`<option${s===r.status?" selected":""}>${s}</option>`).join("")}
-        </select>
-        <span class="rdate">${fmt(r.created_at)}</span>
-        ${lineList(r.request_lines)}
-        ${r.po_number?'<div class="po-line">PO '+esc(r.po_number)+'</div>':""}
-        <div id="th_${r.id}" class="thread-mount"></div>
-      </div>
-    </div>`).join("");
 
-  allReqs.forEach(r => loadThread(r.id, "th_"+r.id));
-}
 
-async function setStatus(id, status){
-  const { error } = await sb.from("requests").update({ status }).eq("id", id);
-  if(error) return toastErr(humanError(error));
-  await loadStaff();               // the status email is sent by the database
-}
 
-function acctStats(org){
-  const rs   = allReqs.filter(r => r.org_id === org.id);
-  const doms = domains.filter(d => d.org_id === org.id).map(d => d.domain);
-  const users = [...new Set(rs.map(r => r.profiles?.full_name).filter(Boolean))];
-  const last = rs.length ? rs.reduce((a,b)=>a.created_at>b.created_at?a:b).created_at : null;
-  return { rs, doms, users,
-           open: rs.filter(r=>!["Closed","Cancelled"].includes(r.status)).length, last };
-}
-
-function renderAccounts(){
-  if(!orgs.length){
-    $("acctRows").innerHTML = '<tr><td colspan="5"><div class="empty">No accounts yet.</div></td></tr>';
-    return;
-  }
-  $("acctRows").innerHTML = orgs.map(o=>{
-    const s = acctStats(o);
-    return `<tr class="clickrow" onclick="openAcct('${esc(o.id)}')">
-      <td class="acctname">${esc(o.name)}</td>
-      <td class="mono" style="font-size:12.5px">${s.doms.map(esc).join("<br>")||"&mdash;"}</td>
-      <td>${s.users.length}</td>
-      <td>${s.open}</td>
-      <td>${s.last?fmt(s.last):"&mdash;"}</td>
-    </tr>`;}).join("");
-}
-
-function openAcct(orgId){
-  const org = orgs.find(o => o.id === orgId); if(!org) return;
-  const s = acctStats(org);
-  $("adName").textContent = org.name;
-  $("adBody").innerHTML =
-    `<div class="sub-h">Domains</div>
-     <ul class="ulist mono">${s.doms.map(d=>"<li>"+esc(d)+"</li>").join("")||"<li>none</li>"}</ul>
-     <div class="sub-h">Users</div>
-     <ul class="ulist">${s.users.map(u=>"<li>"+esc(u)+"</li>").join("")||"<li>none yet</li>"}</ul>
-     <div class="sub-h">Request history</div>` +
-    (s.rs.length ? s.rs.map(r=>`
-      <div class="qrow" style="padding-left:0;padding-right:0">
-        <div class="qbody">
-          <span class="rid mono">${esc(r.ref)}</span>
-          <select class="sel" onchange="setStatus(${r.id},this.value)">
-            ${STATUSES.map(x=>`<option${x===r.status?" selected":""}>${x}</option>`).join("")}
-          </select>
-          <span class="rdate">${fmt(r.created_at)} &middot; ${esc(r.profiles?.full_name||"")}</span>
-          ${lineList(r.request_lines)}
-        </div>
-      </div>`).join("") : '<p class="note">No requests yet.</p>')
-    + supportAdminHtml(orgId);
-  $("acctDetail").hidden = false;
-  $("acctDetail").scrollIntoView({behavior:"smooth", block:"start"});
-}
-function closeAcct(){ $("acctDetail").hidden = true; }
-
-/* ---------- allowlist ---------- */
-function renderDomains(){
-  const byOrg = id => orgs.find(o=>o.id===id)?.name || "\u2014";
-  const list = domains.slice().sort((a,b)=>byOrg(a.org_id).localeCompare(byOrg(b.org_id)));
-
-  $("domRows").innerHTML = list.length ? list.map(d=>`
-    <tr>
-      <td class="mono">${esc(d.domain)}</td>
-      <td>${esc(byOrg(d.org_id))}</td>
-      <td class="c-x"><button class="rm" title="Remove"
-          onclick="rmDomain('${esc(d.domain)}','${esc(d.org_id)}')">&times;</button></td>
-    </tr>`).join("")
-    : '<tr><td colspan="3"><div class="empty">No domains approved yet.</div></td></tr>';
-
-  $("orgList").innerHTML = orgs.map(o=>`<option value="${esc(o.name)}">`).join("");
-}
-
-async function addDomain(){
-  const box = $("admErr"); box.innerHTML = "";
-  const fail = m => box.innerHTML = '<div class="err">'+esc(m)+'</div>';
-
-  let d = $("adDom").value.trim().toLowerCase()
-            .replace(/^https?:\/\//,"").replace(/^@/,"");
-  if(d.includes("@")) d = d.split("@").pop();
-  d = d.split("/")[0].replace(/^www\./,"");
-  const name = $("adOrg").value.trim();
-
-  if(!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/.test(d))
-    return fail("Enter a valid domain, like customer.com");
-  if(FREEMAIL.includes(d))
-    return fail(d+" is a personal email provider and can't be an account domain.");
-  const already = domains.find(x => x.domain === d &&
-    orgs.find(o=>o.id===x.org_id)?.name.toLowerCase() === name.toLowerCase());
-  if(already) return fail(d+" is already on "+name+".");
-  if(!name) return fail("Enter the account name this domain belongs to.");
-
-  // one call: creates the account if it's new, then adds the domain
-  const { data, error } = await sb.rpc("import_domains",
-    { p_rows: [{ domain:d, company:name }] });
-  if(error) return fail(humanError(error));
-
-  const r = (data||[])[0];
-  if(r && r.result !== "added") return fail(r.result);
-
-  $("adDom").value = ""; $("adOrg").value = "";
-  await loadStaff();
-  box.innerHTML = '<div class="toast">'+esc(d)+' added to '+esc(name)+
-    '. Anyone at that domain can now create an account.</div>';
-}
-
-async function rmDomain(d, orgId){
-  const org = orgs.find(o=>o.id === orgId)?.name || "";
-  if(!confirm("Remove "+d+" from "+org+"?\n\nNo one new at "+org+
-              " will be able to sign up. Existing logins keep working.")) return;
-
-  // a domain can serve several site accounts, so both keys are needed
-  const { error } = await sb.from("org_domains")
-    .delete().eq("domain", d).eq("org_id", orgId);
-  if(error) return $("admErr").innerHTML = '<div class="err">'+esc(humanError(error))+'</div>';
-
-  await loadStaff();
-  $("admErr").innerHTML = '<div class="toast">'+esc(d)+' removed from '+esc(org)+
-    '. Existing users keep access until deactivated.</div>';
-}
 
 
 /* ============================================================
-   Messages
+   Action log
 
-   The same feed AIM sees on their side, minus anything they
-   marked internal. That filtering happens in the database, so
-   there is no way to reach the hidden entries from here.
+   The same feed AIM sees, minus anything they marked internal.
+   That filtering happens in the database, so the hidden entries
+   cannot be reached from here.
    ============================================================ */
+let mlogs = [];
+
 async function loadMessages(){
-  if(me.staff || !me.org_id){ $("msgPanel").hidden = true; return; }
+  if(!me.org_id){ $("msgPanel").hidden = true; return; }
 
   const { data, error } = await sb.from("account_log")
     .select("id, body, internal, from_aim, author, created_at")
@@ -1026,11 +758,39 @@ async function loadMessages(){
 }
 
 function renderMessages(){
-  if(!mlogs.length){
-    $("mgFeed").innerHTML = '<div class="empty">No messages yet.</div>';
+  const feed = [
+    ...reqs.map(r  => ({ at: r.created_at, kind: "req", row: r })),
+    ...mlogs.map(l => ({ at: l.created_at, kind: "log", row: l }))
+  ].sort((x,y) => new Date(y.at) - new Date(x.at));
+
+  if(!feed.length){
+    $("mgFeed").innerHTML =
+      '<div class="empty">Nothing yet. Submit a request above and it appears here.</div>';
     return;
   }
-  $("mgFeed").innerHTML = mlogs.map(l => {
+
+  $("mgFeed").innerHTML = feed.map(f =>
+    f.kind === "req" ? reqCard(f.row) : logCard(f.row)).join("");
+
+  reqs.forEach(r => loadThread(r.id, "th_"+r.id));
+}
+
+/* a submitted request, with AIM's replies beneath it */
+function reqCard(r){
+  return `<div class="rec">
+    <div class="rec-top">
+      <span class="rid mono">${esc(r.ref)}</span>
+      <span class="tag">${esc(r.status)}</span>
+      <span class="rdate">${fmt(r.created_at)} &middot; ${esc(r.profiles?.full_name||"")}</span>
+    </div>
+    ${lineList(r.request_lines)}
+    ${r.po_number?'<div class="po-line">PO '+esc(r.po_number)+'</div>':""}
+    <div id="th_${r.id}" class="thread-mount"></div>
+  </div>`;
+}
+
+function logCard(l){
+  return [l].map(l => {
     const d = new Date(l.created_at);
     return `<div class="lg ${l.from_aim ? "aim" : "you"}">
       <div class="lg-d">
@@ -1047,22 +807,6 @@ function renderMessages(){
   }).join("");
 }
 
-async function sendLog(){
-  const body = $("mgBody").value.trim();
-  const fail = m => $("mgErr").innerHTML = '<div class="err">'+esc(m)+'</div>';
-  $("mgErr").innerHTML = "";
-
-  if(!body) return fail("Type your message first.");
-
-  // internal is false: anything a customer writes is visible to both sides
-  const { error } = await sb.from("account_log")
-    .insert({ org_id: me.org_id, body, internal: false });
-  if(error) return fail(humanError(error));
-
-  $("mgBody").value = "";
-  await loadMessages();
-  $("mgErr").innerHTML = '<div class="toast">Sent to AIM service.</div>';
-}
 
 /* ============================================================
    Support hours
@@ -1087,17 +831,11 @@ async function loadSupport(){
   blocks  = b.data || [];
   entries = e.data || [];
 
-  if(me.staff){
-    const r = await sb.from("org_support_balance").select("*");
-    balances = r.data || [];
-    renderSupportAll();
-  }
   renderSupportMine();
 }
 
 /* ---------- what the client sees ---------- */
 function renderSupportMine(){
-  if(me.staff){ $("supPanel").hidden = true; return; }
 
   const mine = blocks.filter(b => b.org_id === me.org_id);
   if(!mine.length){ $("supPanel").hidden = true; return; }
@@ -1148,138 +886,10 @@ function renderSupportMine(){
 }
 
 /* ---------- staff rollup ---------- */
-function renderSupportAll(){
-  const named = balances.map(b => ({...b,
-    name: orgs.find(o=>o.id===b.org_id)?.name || "\u2014"}))
-    .sort((a,b)=>a.name.localeCompare(b.name));
-
-  $("supRows").innerHTML = named.length ? named.map(b=>`
-    <tr class="clickrow" onclick="openAcct('${esc(b.org_id)}')">
-      <td class="acctname">${esc(b.name)}</td>
-      <td>${hrs(b.hours_purchased)}</td>
-      <td>${hrs(b.hours_used)}</td>
-      <td style="font-weight:700;color:${Number(b.hours_left)<=0?"#c8102e":"#0f2545"}">${hrs(b.hours_left)}</td>
-      <td>${money(b.value_left)}</td>
-    </tr>`).join("")
-    : '<tr><td colspan="5"><div class="empty">No support blocks sold yet.</div></td></tr>';
-}
 
 /* ---------- staff: the block + time forms inside an account ---------- */
-function supportAdminHtml(orgId){
-  const mine = blocks.filter(b => b.org_id === orgId);
-  const open = mine.filter(b => Number(b.hours_left) > 0);
-  const left = mine.reduce((t,b)=>t + Number(b.hours_left), 0);
 
-  return `
-    <div class="sub-h">Support hours</div>
-    <div class="bal" style="margin-bottom:10px">
-      <div class="bal-big" style="font-size:28px">${hrs(left)} <small>remaining</small></div>
-      <div class="bal-sub">${mine.length} block${mine.length===1?"":"s"} &middot;
-        ${money(mine.reduce((t,b)=>t+Number(b.value_left),0))} left</div>
-    </div>
-    <div id="supErr"></div>
 
-    <div class="logform">
-      <div class="field">
-        <label for="lgDesc">What was done</label>
-        <input id="lgDesc" placeholder="Phone support \u2014 scanner fault diagnosis">
-      </div>
-      <div class="field">
-        <label for="lgHrs">Hours</label>
-        <input id="lgHrs" type="number" step="0.25" min="0.25" value="1" class="mono">
-      </div>
-      <div class="field">
-        <label for="lgBlk">Against block</label>
-        <select id="lgBlk">
-          ${open.map(b=>`<option value="${b.block_id}">${hrs(b.hours_left)} left &middot; ${
-            money(b.rate)}/hr${b.po_number?" &middot; PO "+esc(b.po_number):""}</option>`).join("")
-            || '<option value="">no block with hours</option>'}
-        </select>
-      </div>
-      <button class="btn" onclick="logTime('${esc(orgId)}')"
-        ${open.length?"":"disabled"}>Log time</button>
-    </div>
-    <p class="note" style="margin:0 0 14px">
-      Quarter-hour increments. Logged as <b>${esc(me.name)}</b>.
-      ${open.length?"":"This account has no hours left \u2014 add a block first."}
-    </p>
-
-    <div class="logform" style="grid-template-columns:110px 110px 1fr auto">
-      <div class="field">
-        <label for="bkHrs">Add hours</label>
-        <input id="bkHrs" type="number" step="0.5" min="0.5" value="20" class="mono">
-      </div>
-      <div class="field">
-        <label for="bkRate">Rate /hr</label>
-        <input id="bkRate" type="number" step="1" min="0" value="180" class="mono">
-      </div>
-      <div class="field">
-        <label for="bkPo">PO / reference</label>
-        <input id="bkPo" placeholder="optional">
-      </div>
-      <button class="btn btn-ghost" onclick="addBlock('${esc(orgId)}')">Add block</button>
-    </div>
-
-    ${mine.map(b=>`
-      <div class="blk">
-        <div class="blk-h">
-          <b>${hrs(b.hours_purchased)} @ ${money(b.rate)}/hr</b>
-          <span class="po">${b.po_number?"PO "+esc(b.po_number)+" &middot; ":""}${
-            new Date(b.purchased_at).toLocaleDateString()}</span>
-          <span style="margin-left:auto;font-weight:700;color:${
-            Number(b.hours_left)<=0?"#c8102e":"#0f2545"}">${hrs(b.hours_left)} left</span>
-        </div>
-        ${entries.filter(e=>e.block_id===b.block_id).map(e=>`
-          <div class="ent">
-            <span class="eh">${hrs(e.hours)}</span>
-            <span class="ed">${esc(e.description)}</span>
-            <span class="em">${esc(e.performed_by)} &middot; ${
-              new Date(e.performed_at).toLocaleDateString()}</span>
-          </div>`).join("")}
-      </div>`).join("")}`;
-}
-
-async function addBlock(orgId){
-  const h = Number($("bkHrs").value), r = Number($("bkRate").value);
-  const po = $("bkPo").value.trim();
-  const fail = m => $("supErr").innerHTML = '<div class="err">'+esc(m)+'</div>';
-
-  if(!(h > 0))  return fail("Enter the number of hours purchased.");
-  if(!(r >= 0)) return fail("Enter the hourly rate.");
-
-  const { error } = await sb.from("support_blocks").insert({
-    org_id: orgId, hours: h, rate: r, po_number: po || null, created_by: me.id });
-  if(error) return fail(humanError(error));
-
-  await loadSupport();
-  openAcct(orgId);
-  $("supErr").innerHTML = '<div class="toast">'+hrs(h)+' added at '+money(r)+
-    '/hr \u2014 '+money(h*r)+'.</div>';
-}
-
-async function logTime(orgId){
-  const desc = $("lgDesc").value.trim();
-  const h    = Number($("lgHrs").value);
-  const blk  = $("lgBlk").value;
-  const fail = m => $("supErr").innerHTML = '<div class="err">'+esc(m)+'</div>';
-
-  if(!desc)     return fail("Describe what was done \u2014 the client sees this.");
-  if(!(h > 0))  return fail("Enter the hours spent.");
-  if(Math.round(h*4) !== h*4) return fail("Use quarter-hour increments: 0.25, 0.5, 0.75, 1\u2026");
-  if(!blk)      return fail("No block with hours remaining. Add a block first.");
-
-  // the database refuses an overdraft; we surface its message
-  const { error } = await sb.from("support_entries").insert({
-    block_id: Number(blk), org_id: orgId, hours: h,
-    description: desc, performed_by: me.name, logged_by: me.id });
-  if(error) return fail(humanError(error));
-
-  await loadSupport();
-  openAcct(orgId);
-  $("supErr").innerHTML = '<div class="toast">'+hrs(h)+' logged. '+
-    hrs(blocks.filter(b=>b.org_id===orgId).reduce((t,b)=>t+Number(b.hours_left),0))+
-    ' remaining.</div>';
-}
 
 
 /* ============================================================
@@ -1326,38 +936,7 @@ async function claimSite(){
 }
 
 /* ---------- staff: people with no site yet ---------- */
-async function loadUnassigned(){
-  const { data } = await sb.from("profiles")
-    .select("id, full_name, org_id, created_at").is("org_id", null);
-  const list = data || [];
 
-  if(!list.length){ $("unPanel").hidden = true; return; }
-  $("unPanel").hidden = false;
-
-  $("unRows").innerHTML = list.map(p=>`
-    <tr>
-      <td>${esc(p.full_name||"\u2014")}</td>
-      <td style="color:#5d6874;font-size:13px">${new Date(p.created_at).toLocaleDateString()}</td>
-      <td>
-        <select id="un_${esc(p.id)}" class="sel">
-          <option value="">choose an account\u2026</option>
-          ${orgs.map(o=>`<option value="${esc(o.id)}">${esc(o.name)}</option>`).join("")}
-        </select>
-      </td>
-      <td class="c-x"><button class="btn btn-ghost" style="padding:5px 11px;font-size:13px"
-          onclick="assignUser('${esc(p.id)}')">Assign</button></td>
-    </tr>`).join("");
-}
-
-async function assignUser(userId){
-  const sel = $("un_"+userId);
-  if(!sel.value) return;
-  const { error } = await sb.rpc("set_user_site",
-    { p_user: userId, p_org_id: sel.value });
-  if(error) return toastErr(humanError(error));
-  await loadStaff();
-  await loadUnassigned();
-}
 
 
 
@@ -1390,19 +969,22 @@ function threadHtml(reqId, msgs){
           <div class="msg-b" id="mb_${m.id}">${esc(m.body)}</div>
         </div>`).join("") || '<div class="msg-empty">No messages yet.</div>'}
 
-      <div class="msg-form">
+      <button class="linkbtn tiny" id="ro_${reqId}"
+              onclick="openReply(${reqId})">Reply to AIM</button>
+      <div class="msg-form" id="mf_${reqId}" hidden>
         <textarea id="mt_${reqId}" rows="2" placeholder="${
-          me.staff ? "Reply \u2014 quote a PO or hours if relevant"
-                   : "Add a note or reply to AIM"}"></textarea>
-        ${me.staff ? `
-          <input id="mh_${reqId}" type="number" step="0.25" min="0.25"
-                 placeholder="hrs" class="mono tiny-in">
-          <input id="mp_${reqId}" placeholder="PO" class="tiny-in">` : `
-          <input id="mp_${reqId}" placeholder="Your PO" class="tiny-in">`}
+          "Add a note or reply to AIM"}"></textarea>
+        <input id="mp_${reqId}" placeholder="Your PO" class="tiny-in">
         <button class="btn btn-ghost" onclick="postMsg(${reqId})">Send</button>
       </div>
       <div id="me_${reqId}"></div>
     </div>`;
+}
+
+function openReply(reqId){
+  $("ro_"+reqId).hidden = true;
+  $("mf_"+reqId).hidden = false;
+  $("mt_"+reqId).focus();
 }
 
 async function postMsg(reqId){
@@ -1446,14 +1028,12 @@ async function saveMsg(id, reqId){
 
 async function refreshAfterMessage(reqId){
   await loadThread(reqId, "th_"+reqId);
-  if(me.staff){ await loadStaff(); } else { await loadMine(); }
+  await loadMine();
 }
 
 /* ---------- inline handlers need these on window ---------- */
 Object.assign(window, { signIn, signOut, addRow, rmRow, setF, submitReq,
-  setStatus, openAcct, closeAcct, addDomain, rmDomain,
-  addBlock, logTime, claimSite, assignUser,
-  loadThread, postMsg, editMsg, saveMsg, sendLog });
+  claimSite, loadThread, postMsg, editMsg, saveMsg, openReply });
 
 /* ---------- go ---------- */
 render();
