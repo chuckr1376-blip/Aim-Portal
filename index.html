@@ -228,6 +228,32 @@
   .btn.tiny{padding:4px 10px;font-size:12.5px}
   .po-line{font-size:12.5px;color:#5d6874;margin-top:5px;
            font-family:ui-monospace,Menlo,monospace}
+
+  /* ---------- messages ---------- */
+  .msgbox{border:1px solid var(--line);border-radius:9px;padding:13px;
+          background:#fbfcfd;margin-bottom:16px}
+  .msgbox label{display:block;font-size:11px;color:#5d6874;letter-spacing:.1em;
+                text-transform:uppercase;font-weight:600;margin-bottom:5px}
+  .msgbox textarea{width:100%;min-height:62px;padding:9px 11px;border:1px solid var(--line);
+                   border-radius:7px;font:inherit;font-size:13.5px;resize:vertical}
+  .msgfoot{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+  .msgfoot .hint{font-size:12px;color:#5d6874}
+  .msgfoot .btn{margin-left:auto}
+  .lg{display:flex;margin-bottom:11px}
+  .lg-d{flex:0 0 60px;padding:10px 0;text-align:center}
+  .lg-d b{display:block;font-size:21px;font-weight:800;line-height:1}
+  .lg-d span{display:block;font-size:10px;letter-spacing:.09em;margin-top:2px}
+  .lg-b{padding:10px 13px;min-width:0}
+  .lg-w{font-size:10.5px;font-weight:700;letter-spacing:.08em;margin-bottom:3px}
+  .lg-t{font-size:13.5px;white-space:pre-wrap;word-wrap:break-word}
+  .lg.aim{border-left:3px solid #c2570a;background:#fdf2e7}
+  .lg.aim .lg-d{border-right:1px solid #eddcc6}
+  .lg.aim .lg-d b{color:#8a4f0d} .lg.aim .lg-d span{color:#a8763a}
+  .lg.aim .lg-w{color:#8a4f0d}   .lg.aim .lg-t{color:#3d2408}
+  .lg.you{border-left:3px solid #1d4e89;background:#eef3fa}
+  .lg.you .lg-d{border-right:1px solid #d5e0ee}
+  .lg.you .lg-d b{color:#1d4e89} .lg.you .lg-d span{color:#5b7ea8}
+  .lg.you .lg-w{color:#1d4e89}   .lg.you .lg-t{color:#16233a}
 </style>
 </head>
 <body>
@@ -405,6 +431,27 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
       <div class="panel-body" id="supBody"></div>
     </section>
 
+
+    <section class="panel" id="msgPanel">
+      <div class="panel-head">
+        <h3>Messages</h3>
+        <div class="sub">Anything that isn't a parts or service request.</div>
+      </div>
+      <div class="panel-body">
+        <div class="msgbox">
+          <label for="mgBody">Write to AIM</label>
+          <textarea id="mgBody"
+            placeholder="Need support &mdash; 2 AGVs down on the north line since this morning."></textarea>
+          <div class="msgfoot">
+            <span class="hint">Dated today, sent to AIM service.</span>
+            <button class="btn" onclick="sendLog()">Send message</button>
+          </div>
+        </div>
+        <div id="mgErr"></div>
+        <div id="mgFeed"></div>
+      </div>
+    </section>
+
     <section class="panel">
       <div class="panel-head">
         <h3>Your requests</h3>
@@ -547,6 +594,7 @@ let domains = [];     // staff: the allowlist
 let blocks = [];      // support hour blocks (mine, or all if staff)
 let entries = [];     // time logged against them
 let balances = [];    // staff: per-account rollup
+let mlogs = [];       // messages between this account and AIM
 
 /* ---------- messages ---------- */
 function gateErr(msg){ $("gateErr").innerHTML = '<div class="err">'+esc(msg)+'</div>'; }
@@ -671,6 +719,7 @@ async function boot(){
     if(!rows.length) addRow();
     await loadMine();
     await loadSupport();
+    await loadMessages();
   }
 }
 
@@ -953,6 +1002,67 @@ async function rmDomain(d, orgId){
     '. Existing users keep access until deactivated.</div>';
 }
 
+
+/* ============================================================
+   Messages
+
+   The same feed AIM sees on their side, minus anything they
+   marked internal. That filtering happens in the database, so
+   there is no way to reach the hidden entries from here.
+   ============================================================ */
+async function loadMessages(){
+  if(me.staff || !me.org_id){ $("msgPanel").hidden = true; return; }
+
+  const { data, error } = await sb.from("account_log")
+    .select("id, body, internal, from_aim, author, created_at")
+    .order("created_at", { ascending:false });
+
+  if(error){
+    $("mgFeed").innerHTML = '<div class="err">'+esc(humanError(error))+'</div>';
+    return;
+  }
+  mlogs = data || [];
+  renderMessages();
+}
+
+function renderMessages(){
+  if(!mlogs.length){
+    $("mgFeed").innerHTML = '<div class="empty">No messages yet.</div>';
+    return;
+  }
+  $("mgFeed").innerHTML = mlogs.map(l => {
+    const d = new Date(l.created_at);
+    return `<div class="lg ${l.from_aim ? "aim" : "you"}">
+      <div class="lg-d">
+        <b>${d.getDate()}</b>
+        <span>${d.toLocaleString(undefined,{month:"short"}).toUpperCase()}</span>
+      </div>
+      <div class="lg-b">
+        <div class="lg-w">${l.from_aim
+          ? "AIM &middot; " + esc(l.author || "Service")
+          : esc(me.org_name || "Your company") + " &middot; " + esc(l.author || "")}</div>
+        <div class="lg-t">${esc(l.body)}</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+async function sendLog(){
+  const body = $("mgBody").value.trim();
+  const fail = m => $("mgErr").innerHTML = '<div class="err">'+esc(m)+'</div>';
+  $("mgErr").innerHTML = "";
+
+  if(!body) return fail("Type your message first.");
+
+  // internal is false: anything a customer writes is visible to both sides
+  const { error } = await sb.from("account_log")
+    .insert({ org_id: me.org_id, body, internal: false });
+  if(error) return fail(humanError(error));
+
+  $("mgBody").value = "";
+  await loadMessages();
+  $("mgErr").innerHTML = '<div class="toast">Sent to AIM service.</div>';
+}
 
 /* ============================================================
    Support hours
@@ -1343,7 +1453,7 @@ async function refreshAfterMessage(reqId){
 Object.assign(window, { signIn, signOut, addRow, rmRow, setF, submitReq,
   setStatus, openAcct, closeAcct, addDomain, rmDomain,
   addBlock, logTime, claimSite, assignUser,
-  loadThread, postMsg, editMsg, saveMsg });
+  loadThread, postMsg, editMsg, saveMsg, sendLog });
 
 /* ---------- go ---------- */
 render();

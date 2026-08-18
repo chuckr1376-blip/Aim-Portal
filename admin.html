@@ -331,6 +331,11 @@ tr:last-child td{border-bottom:0}
 .sellbox input.po{width:130px}
 .btn.orange{background:var(--orange);border-color:var(--orange)}
 .btn.orange:hover{background:#a94a06;border-color:#a94a06}
+
+/* a message written by the customer reads blue, like their side of a thread */
+.entry.client{border-left-color:#1d4e89;background:#eef3fa}
+.entry.client .entry-h{color:#1d4e89}
+.entry.client .entry-b{color:#16233a}
 </style>
 </head>
 <body>
@@ -755,9 +760,11 @@ function tabRequests(rs){
 }
 
 function logHtml(l){
-  return `<div class="entry ${l.internal ? "" : "shared"}">
+  const fromClient = (l.from_aim === false);
+  return `<div class="entry ${fromClient ? "client" : (l.internal ? "" : "shared")}">
     <div class="entry-h">
-      <b>${l.internal ? "INTERNAL NOTE" : "NOTE — CUSTOMER CAN SEE"}</b>
+      <b>${fromClient ? "FROM THE CUSTOMER"
+           : (l.internal ? "INTERNAL NOTE" : "NOTE \u2014 CUSTOMER CAN SEE")}</b>
       <span class="tagi">${esc(l.author || "AIM")}</span>
       <span style="margin-left:auto">${fmt(l.created_at)}</span>
     </div>
