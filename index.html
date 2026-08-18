@@ -254,6 +254,12 @@
   .lg.you .lg-d{border-right:1px solid #d5e0ee}
   .lg.you .lg-d b{color:#1d4e89} .lg.you .lg-d span{color:#5b7ea8}
   .lg.you .lg-w{color:#1d4e89}   .lg.you .lg-t{color:#16233a}
+
+  .msg-form[hidden]{display:none}
+  .linkbtn.tiny{font-size:12.5px;padding:2px 0;background:none;border:0;
+    color:var(--navy);font-weight:600;cursor:pointer;text-decoration:underline;
+    text-underline-offset:3px}
+  .linkbtn.tiny:hover{color:#c2570a}
 </style>
 </head>
 <body>
@@ -440,27 +446,11 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
         <div class="sub">Requests, and what AIM did about them.</div>
       </div>
       <div class="panel-body">
-        <div class="msgbox">
-          <label for="mgBody">Add to the log</label>
-          <textarea id="mgBody"
-            placeholder="Need support &mdash; 2 AGVs down on the north line since this morning."></textarea>
-          <div class="msgfoot">
-            <span class="hint">Dated today, sent to AIM service.</span>
-            <button class="btn" onclick="sendLog()">Send</button>
-          </div>
-        </div>
         <div id="mgErr"></div>
         <div id="mgFeed"></div>
       </div>
     </section>
 
-    <section class="panel">
-      <div class="panel-head">
-        <h3>Your requests</h3>
-        <div class="sub" id="cnt"></div>
-      </div>
-      <div id="list"><div class="empty">Loading&hellip;</div></div>
-    </section>
   </div>
 
   <div id="staff" hidden>
@@ -720,8 +710,8 @@ async function boot(){
     $("portal").hidden = false;
     if(!rows.length) addRow();
     await loadMine();
-    await loadSupport();
     await loadMessages();
+    await loadSupport();
   }
 }
 
@@ -801,10 +791,9 @@ async function loadMine(){
     .select("id, ref, status, created_at, profiles(full_name), orgs(name), request_lines(item,kind,qty,serial)")
     .order("created_at", { ascending:false });
 
-  if(error){ $("list").innerHTML = '<div class="empty">'+esc(humanError(error))+'</div>'; return; }
+  if(error){ $("mgFeed").innerHTML = '<div class="err">'+esc(humanError(error))+'</div>'; return; }
 
   reqs = data || [];
-  renderList();
 }
 
 function lineList(ls){
@@ -813,26 +802,6 @@ function lineList(ls){
     ${l.serial ? ' <span class="mono">('+esc(l.serial)+')</span>' : ""}</li>`).join("")}</ul>`;
 }
 
-function renderList(){
-  if(me.staff) return;
-  $("cnt").textContent = reqs.length ? reqs.length+" total" : "";
-  if(!reqs.length){
-    $("list").innerHTML = '<div class="empty">Nothing submitted yet.</div>'; return;
-  }
-  $("list").innerHTML = reqs.map(r=>`
-    <div class="rec">
-      <div class="rec-top">
-        <span class="rid mono">${esc(r.ref)}</span>
-        <span class="tag">${esc(r.status)}</span>
-        <span class="rdate">${fmt(r.created_at)} &middot; ${esc(r.profiles?.full_name||"")}</span>
-      </div>
-      ${lineList(r.request_lines)}
-      ${r.po_number?'<div class="po-line">PO '+esc(r.po_number)+'</div>':""}
-      <div id="th_${r.id}" class="thread-mount"></div>
-    </div>`).join("");
-
-  reqs.forEach(r => loadThread(r.id, "th_"+r.id));
-}
 
 /* ============================================================
    Staff: queue, accounts, allowlist
@@ -1030,11 +999,39 @@ async function loadMessages(){
 }
 
 function renderMessages(){
-  if(!mlogs.length){
-    $("mgFeed").innerHTML = '<div class="empty">Nothing logged yet.</div>';
+  const feed = [
+    ...reqs.map(r  => ({ at: r.created_at, kind: "req", row: r })),
+    ...mlogs.map(l => ({ at: l.created_at, kind: "log", row: l }))
+  ].sort((x,y) => new Date(y.at) - new Date(x.at));
+
+  if(!feed.length){
+    $("mgFeed").innerHTML =
+      '<div class="empty">Nothing yet. Submit a request above and it appears here.</div>';
     return;
   }
-  $("mgFeed").innerHTML = mlogs.map(l => {
+
+  $("mgFeed").innerHTML = feed.map(f =>
+    f.kind === "req" ? reqCard(f.row) : logCard(f.row)).join("");
+
+  reqs.forEach(r => loadThread(r.id, "th_"+r.id));
+}
+
+/* a submitted request, with AIM's replies beneath it */
+function reqCard(r){
+  return `<div class="rec">
+    <div class="rec-top">
+      <span class="rid mono">${esc(r.ref)}</span>
+      <span class="tag">${esc(r.status)}</span>
+      <span class="rdate">${fmt(r.created_at)} &middot; ${esc(r.profiles?.full_name||"")}</span>
+    </div>
+    ${lineList(r.request_lines)}
+    ${r.po_number?'<div class="po-line">PO '+esc(r.po_number)+'</div>':""}
+    <div id="th_${r.id}" class="thread-mount"></div>
+  </div>`;
+}
+
+function logCard(l){
+  return [l].map(l => {
     const d = new Date(l.created_at);
     return `<div class="lg ${l.from_aim ? "aim" : "you"}">
       <div class="lg-d">
@@ -1051,21 +1048,6 @@ function renderMessages(){
   }).join("");
 }
 
-async function sendLog(){
-  const body = $("mgBody").value.trim();
-  const fail = m => $("mgErr").innerHTML = '<div class="err">'+esc(m)+'</div>';
-  $("mgErr").innerHTML = "";
-
-  if(!body) return fail("Type something first.");
-
-  const { error } = await sb.from("account_log")
-    .insert({ org_id: me.org_id, body, internal: false });
-  if(error) return fail(humanError(error));
-
-  $("mgBody").value = "";
-  await loadMessages();
-  $("mgErr").innerHTML = '<div class="toast">Sent to AIM service.</div>';
-}
 
 /* ============================================================
    Support hours
@@ -1393,7 +1375,9 @@ function threadHtml(reqId, msgs){
           <div class="msg-b" id="mb_${m.id}">${esc(m.body)}</div>
         </div>`).join("") || '<div class="msg-empty">No messages yet.</div>'}
 
-      <div class="msg-form">
+      <button class="linkbtn tiny" id="ro_${reqId}"
+              onclick="openReply(${reqId})">Reply to AIM</button>
+      <div class="msg-form" id="mf_${reqId}" hidden>
         <textarea id="mt_${reqId}" rows="2" placeholder="${
           me.staff ? "Reply \u2014 quote a PO or hours if relevant"
                    : "Add a note or reply to AIM"}"></textarea>
@@ -1406,6 +1390,12 @@ function threadHtml(reqId, msgs){
       </div>
       <div id="me_${reqId}"></div>
     </div>`;
+}
+
+function openReply(reqId){
+  $("ro_"+reqId).hidden = true;
+  $("mf_"+reqId).hidden = false;
+  $("mt_"+reqId).focus();
 }
 
 async function postMsg(reqId){
@@ -1456,7 +1446,7 @@ async function refreshAfterMessage(reqId){
 Object.assign(window, { signIn, signOut, addRow, rmRow, setF, submitReq,
   setStatus, openAcct, closeAcct, addDomain, rmDomain,
   addBlock, logTime, claimSite, assignUser,
-  loadThread, postMsg, editMsg, saveMsg, sendLog });
+  loadThread, postMsg, editMsg, saveMsg, openReply });
 
 /* ---------- go ---------- */
 render();
