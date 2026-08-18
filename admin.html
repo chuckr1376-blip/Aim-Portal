@@ -351,6 +351,31 @@ tr:last-child td{border-bottom:0}
 .blk:hover .rm,.ent:hover .rm,.entry:hover .rm{opacity:1}
 .entry-h .rm{opacity:.35;margin-left:5px;font-size:15px}
 .ent .em{display:inline-flex;align-items:center;gap:2px}
+
+/* ---------- their view ---------- */
+.mirror-note{background:#eef3fa;border-left:3px solid var(--navy);
+  padding:9px 13px;border-radius:0 7px 7px 0;font-size:13px;color:var(--steel);
+  margin-bottom:15px}
+.mirror-note b{color:var(--navy)}
+.mirror{background:#f5f7fa;border:1px solid var(--line);border-radius:10px;padding:16px}
+.m-acct{font-size:22px;font-weight:700;color:var(--navy);margin-bottom:13px;
+  letter-spacing:-.3px}
+.m-card{background:#fff;border:1px solid var(--line);border-radius:9px;
+  padding:13px 15px;margin-bottom:13px}
+.m-card:last-child{margin-bottom:0}
+.m-h{font-size:14.5px;font-weight:600;color:var(--navy);margin-bottom:9px}
+.m-form{font-size:12.5px;color:#9aa5b4;border:1px dashed var(--line);
+  border-radius:7px;padding:11px 13px}
+.m-btn{background:var(--navy);color:#fff;border-radius:5px;padding:3px 10px;
+  font-size:12px;font-weight:600}
+.m-req{border-top:1px solid var(--line-2);padding:10px 0}
+.m-req:first-of-type{border-top:0}
+.m-req b{font-size:13px;color:var(--navy)}
+.m-tag{background:#eef1f6;color:var(--steel);border-radius:3px;padding:1px 7px;
+  font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+  margin:0 7px}
+.mirror .entry{margin-bottom:9px}
+.mirror .entry:last-child{margin-bottom:0}
 </style>
 </head>
 <body>
@@ -714,7 +739,8 @@ function renderAccount(){
     ["requests", "Requests / Log", rs.length + logsOf(sel).length],
     ["people",   "Users",    us.length],
     ["access",   "Access",   em.length + ds.length],
-    ["hours",    "Support hours", blocksOf(sel).length]
+    ["hours",    "Support hours", blocksOf(sel).length],
+    ["their",    "Their view",    0]
   ];
 
   $("detail").dataset.empty = "0";
@@ -736,12 +762,90 @@ function renderAccount(){
       ${ tab==="requests" ? tabRequests(rs)
        : tab==="people"   ? tabPeople(us)
        : tab==="access"   ? tabAccess(em, ds)
+       : tab==="their"    ? tabTheirView(rs)
        :                    tabHours() }
     </div>`;
 
   if(tab === "requests") rs.forEach(r => loadThread(r.id, "th_"+r.id));
 }
 function setTab(k){ tab = k; renderAccount(); }
+
+/* ============================================================
+   Their view
+
+   Exactly what this account sees when they sign in — same data,
+   same filtering. Internal notes are excluded here the same way
+   the database excludes them from the customer's own request.
+
+   Read-only. It shows their screen; it does not prove their
+   permissions, which only a real customer login can do.
+   ============================================================ */
+function tabTheirView(rs){
+  const o  = orgs.find(x => x.id === sel);
+  const bl = blocksOf(sel);
+  const left  = hoursLeft(sel);
+  const total = bl.reduce((t,b) => t + Number(b.hours_purchased), 0);
+  const value = bl.reduce((t,b) => t + Number(b.value_left), 0);
+  const rate  = (bl.find(b => Number(b.hours_left) > 0) || bl[0])?.rate;
+
+  // only what they can see
+  const visible = logsOf(sel).filter(l => l.internal === false);
+  const hidden  = logsOf(sel).length - visible.length;
+
+  const feed = [
+    ...(rs||[]).map(r => ({ at: r.created_at, kind:"req", row:r })),
+    ...visible.map(l  => ({ at: l.created_at, kind:"log", row:l }))
+  ].sort((x,y) => new Date(y.at) - new Date(x.at));
+
+  return `
+    <div class="mirror-note">
+      This is ${esc(o.name)}'s screen. ${hidden
+        ? "<b>"+hidden+"</b> internal note"+(hidden===1?"":"s")+" hidden from them."
+        : "Nothing is hidden from them."}
+    </div>
+
+    <div class="mirror">
+      <div class="m-acct">${esc(o.name)}</div>
+
+      ${bl.length ? `
+        <div class="m-card">
+          <div class="m-h">Bank of Hours</div>
+          <div class="gauge" style="margin:0">
+            <b>${hrs(left)}</b>
+            <span>hours left of ${hrs(total)} \u00b7 ${money(value)}${
+              rate ? " \u00b7 " + money(rate) + "/hr" : ""}</span>
+          </div>
+        </div>` : ""}
+
+      <div class="m-card">
+        <div class="m-h">New request</div>
+        <div class="m-form">Describe the item or request &nbsp;|&nbsp; Type &nbsp;|&nbsp; Qty
+          &nbsp;|&nbsp; Serial &nbsp;&nbsp; <span class="m-btn">Submit request</span></div>
+      </div>
+
+      <div class="m-card">
+        <div class="m-h">Action log</div>
+        ${feed.length ? feed.map(f => f.kind === "req"
+          ? `<div class="m-req">
+               <b class="mono">${esc(f.row.ref)}</b>
+               <span class="m-tag">${esc(f.row.status)}</span>
+               <span class="sm">${fmt(f.row.created_at)}</span>
+               <ul class="lines">${(f.row.request_lines||[]).map(l =>
+                 `<li><span class="qty">${l.qty}\u00d7</span> ${esc(l.item)}
+                  <span class="kind">${esc(l.kind)}</span></li>`).join("")}</ul>
+             </div>`
+          : `<div class="entry ${f.row.from_aim === false ? "client" : "shared"}">
+               <div class="entry-h">
+                 <b>${f.row.from_aim === false ? esc(o.name) : "AIM"}</b>
+                 <span class="tagi">${esc(f.row.author || "")}</span>
+                 <span style="margin-left:auto">${fmt(f.row.created_at)}</span>
+               </div>
+               <div class="entry-b">${esc(f.row.body)}</div>
+             </div>`).join("")
+          : '<div class="empty">Nothing yet.</div>'}
+      </div>
+    </div>`;
+}
 
 /* ---------- rename ---------- */
 function startRename(){
@@ -1243,7 +1347,7 @@ Object.assign(window, { signIn, signOut, pick, backToQueue, setTab,
   createAccount, addDomain, rmDomain, authorize, revoke, toggleActive,
   setStatus, addBlock, logTime, loadThread, postMsg, editMsg, saveMsg,
   openReply, addLog, toggleAdd, startRename, saveRename,
-  delBlock, delEntry, delLog });
+  delBlock, delEntry, delLog, tabTheirView });
 
 $("find").oninput = e => { filter = e.target.value; renderRail(); };
 boot();
