@@ -439,7 +439,7 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
     <p class="note">
       Personal email addresses aren't accepted &mdash; use your company address.
       If your company isn't set up yet, contact
-      <b>service@weareaim.com</b>.
+      <b>agvparts@weareaim.com</b>.
     </p>
   </section>
 
@@ -593,7 +593,7 @@ function toastErr(msg){$("toast").innerHTML   = '<div class="err">'+esc(msg)+'</
 function humanError(e){
   const m = (e?.message || String(e)).toLowerCase();
   if (m.includes("approved customer accounts") || m.includes("42501"))
-    return "That email domain isn't set up with us yet. Contact service@weareaim.com to request access.";
+    return "That email domain isn't set up with us yet. Contact agvparts@weareaim.com to request access.";
   if (m.includes("invalid login credentials"))
     return "Wrong email or password.";
   if (m.includes("password should be") || m.includes("weak password"))
@@ -606,7 +606,7 @@ function humanError(e){
     return "Too many attempts. Wait a few minutes and try again.";
   if (m.includes("failed to fetch"))
     return "Couldn't reach the server. Check your connection and try again.";
-  return e?.message || "Something went wrong. Try again, or email service@weareaim.com.";
+  return e?.message || "Something went wrong. Try again, or email agvparts@weareaim.com.";
 }
 
 /* ============================================================
@@ -784,7 +784,7 @@ async function boot(){
 
   if(prof && prof.active === false){
     $("gate").hidden = false;
-    return gateErr("This login has been deactivated. Contact service@weareaim.com.");
+    return gateErr("This login has been deactivated. Contact agvparts@weareaim.com.");
   }
 
   me = {
@@ -871,7 +871,7 @@ function render(){
 async function submitReq(){
   const lines = rows.filter(r => r.item.trim());
   if(!lines.length) return toastErr("Add at least one item before submitting.");
-  if(!me.org_id)    return toastErr("Your login isn't linked to an account yet. Contact service@weareaim.com.");
+  if(!me.org_id)    return toastErr("Your login isn't linked to an account yet. Contact agvparts@weareaim.com.");
 
   const btn = $("subBtn");
   btn.disabled = true; btn.textContent = "Submitting\u2026";
@@ -1127,7 +1127,7 @@ async function showSitePicker(){
   if(error || !data || !data.length){
     $("pickBody").innerHTML =
       '<div class="err">We couldn\'t match your email to an account. ' +
-      'Contact service@weareaim.com and we\'ll set you up.</div>';
+      'Contact agvparts@weareaim.com and we\'ll set you up.</div>';
     $("pickPanel").hidden = false;
     return;
   }
