@@ -357,29 +357,23 @@ tr:last-child td{border-bottom:0}
   padding:9px 13px;border-radius:0 7px 7px 0;font-size:13px;color:var(--steel);
   margin-bottom:15px}
 .mirror-note b{color:var(--navy)}
-.mirror{background:#f5f7fa;border:1px solid var(--line);border-radius:10px;padding:16px}
-.m-acct{font-size:22px;font-weight:700;color:var(--navy);margin-bottom:13px;
-  letter-spacing:-.3px}
-.m-card{background:#fff;border:1px solid var(--line);border-radius:9px;
-  padding:13px 15px;margin-bottom:13px}
+
+
+
 .m-card:last-child{margin-bottom:0}
-.m-h{font-size:14.5px;font-weight:600;color:var(--navy);margin-bottom:9px}
-.m-form{font-size:12.5px;color:#9aa5b4;border:1px dashed var(--line);
-  border-radius:7px;padding:11px 13px}
-.m-btn{background:var(--navy);color:#fff;border-radius:5px;padding:3px 10px;
-  font-size:12px;font-weight:600}
-.m-req{border-top:1px solid var(--line-2);padding:10px 0}
+
+
+
+
 .m-req:first-of-type{border-top:0}
 .m-req b{font-size:13px;color:var(--navy)}
-.m-tag{background:#eef1f6;color:var(--steel);border-radius:3px;padding:1px 7px;
-  font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
-  margin:0 7px}
-.mirror .entry{margin-bottom:9px}
+
+
 .mirror .entry:last-child{margin-bottom:0}
 
 /* the mirror renders their real controls, switched off */
-.m-sub{font-weight:400;font-size:12.5px;color:var(--steel);margin-left:9px}
-.m-tbl{width:100%;border-collapse:collapse;margin-bottom:11px}
+
+
 .m-tbl th{font-size:10.5px;letter-spacing:.09em;padding:6px 9px;background:none;
   border-bottom:1px solid var(--line-2)}
 .m-tbl td{padding:7px 9px;border:0}
@@ -387,14 +381,39 @@ tr:last-child td{border-bottom:0}
 .m-tbl input,.m-tbl select{padding:7px 10px;font-size:13.5px;background:#fcfcfd;
   color:#8b98ab;cursor:default}
 .m-tbl input:disabled,.m-tbl select:disabled{opacity:1;-webkit-text-fill-color:#8b98ab}
-.m-x{color:#ccd3dc;text-align:center;width:26px}
-.m-foot{display:flex;align-items:center;gap:11px;padding:0 9px}
-.m-ghost{border:1px solid var(--line);border-radius:7px;padding:7px 14px;
-  font-size:13.5px;font-weight:600;color:#8b98ab;background:#fff}
+
+
+
 .m-btn{background:var(--navy);color:#fff;border-radius:7px;padding:8px 16px;
   font-size:13.5px;font-weight:600;opacity:.55}
-.m-stamp{margin-left:auto;font-size:12px;color:var(--steel)}
+
 .mirror{pointer-events:none;user-select:none}
+
+/* the framed customer portal */
+.mirror-note a.mirror-open{margin-left:9px;color:var(--navy);font-weight:600;
+  text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.mirror-note a.mirror-open:hover{color:var(--orange)}
+.mirror-frame{border:1px solid var(--line);border-radius:10px;overflow:hidden;
+  background:#fff}
+.mirror-frame iframe{display:block;width:100%;height:520px;border:0}
+
+/* the users list lives one click above the accounts */
+.usersbtn{display:flex;align-items:center;gap:9px;width:100%;
+  background:#fff;color:var(--navy);border:1px solid var(--line);border-radius:11px;
+  padding:12px 16px;font:inherit;font-family:"Barlow Condensed",sans-serif;
+  font-size:16px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  cursor:pointer;margin-bottom:16px}
+.usersbtn:hover{border-color:var(--steel)}
+.usersbtn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.usersbtn .car{margin-left:auto;font-size:16px;opacity:.6}
+
+/* a disabled account */
+.offtag{background:#f2f4f7;color:var(--steel);border-radius:3px;padding:1px 7px;
+  font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.tk.off .tk-n{color:var(--steel)}
+.tk.off{opacity:.75}
+.tk.off:before{background:#d4d9e0}
+.acct-h .rm{font-size:19px}
 </style>
 </head>
 <body>
@@ -489,7 +508,8 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
     <h1>Dispatch</h1>
     <div class="tick" id="tickAcc"><b id="tkAcc">—</b><span>Accounts</span></div>
     <div class="tick" id="tickOpen"><b id="tkOpen">—</b><span>Open</span></div>
-    <div class="tick" id="tickUsr"><b id="tkUsr">—</b><span>Logins</span></div>
+    <div class="tick" id="tickCli"><b id="tkCli">—</b><span>Clients</span></div>
+    <div class="tick" id="tickStf"><b id="tkStf">—</b><span>AIM staff</span></div>
     <div class="tick" id="tickLow"><b id="tkLow">—</b><span>Low hours</span></div>
     <div class="whoami" id="who" hidden>
       <span id="whoName"></span>
@@ -521,6 +541,10 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
   <div>
     <button class="addbtn" onclick="toggleAdd()">
       <i>+</i> New account <span class="car" id="addCaret">&#9662;</span>
+    </button>
+
+    <button class="usersbtn" onclick="toggleUsers()">
+      Active users <span class="car">&rsaquo;</span>
     </button>
 
     <div class="pane addpanel" id="addPanel" hidden>
@@ -597,7 +621,7 @@ function humanError(e){
 
 let me = null, orgs = [], domains = [], users = [], authed = [],
     reqs = [], blocks = [], entries = [], logs = [];
-let sel = null, tab = "requests", filter = "";
+let sel = null, tab = "requests", filter = "", showingUsers = false;
 
 /* ============================================================
    Sign in
@@ -652,7 +676,7 @@ async function boot(){
 
 async function loadAll(){
   const [o,d,u,a,r,b,e,g] = await Promise.all([
-    sb.from("orgs").select("id, name").order("name"),
+    sb.from("orgs").select("id, name, active").order("name"),
     sb.from("org_domains").select("domain, org_id"),
     sb.rpc("list_users"),
     sb.rpc("list_authorized"),
@@ -668,7 +692,7 @@ async function loadAll(){
   logs    = g.data || [];
 
   renderTicks(); renderRail();
-  sel ? renderAccount() : renderQueue();
+  showingUsers ? renderAllUsers() : (sel ? renderAccount() : renderQueue());
 }
 
 function renderTicks(){
@@ -677,7 +701,8 @@ function renderTicks(){
                                   return l > 0 && l <= 4; }).length;
   $("tkAcc").textContent = orgs.length;
   $("tkOpen").textContent = open;
-  $("tkUsr").textContent = users.filter(u => u.org_id).length;
+  $("tkCli").textContent = users.filter(u => !u.is_staff).length;
+  $("tkStf").textContent = users.filter(u =>  u.is_staff).length;
   $("tkLow").textContent = low;
   $("tickLow").classList.toggle("alert", low > 0);
   $("tickOpen").classList.toggle("alert", open > 0);
@@ -703,9 +728,11 @@ function renderRail(){
 
   $("rail").innerHTML = list.length ? list.map(o => {
     const open = openOf(o.id), left = hoursLeft(o.id), ds = domsOf(o.id);
-    return `<button class="tk ${sel===o.id?"on":""} ${open?"busy":""}"
+    return `<button class="tk ${sel===o.id?"on":""} ${open?"busy":""} ${
+                    o.active===false?"off":""}"
                     onclick="pick('${esc(o.id)}')">
-      <div class="tk-n">${esc(o.name)}</div>
+      <div class="tk-n">${esc(o.name)}${
+        o.active===false?' <span class="offtag sm">disabled</span>':""}</div>
       <div class="tk-d">${ds.length ? ds.map(esc).join(" · ") : "no domain yet"}</div>
       <div class="tk-r">
         ${open ? `<span class="pip open">${open} open</span>` : ""}
@@ -717,7 +744,74 @@ function renderRail(){
         : "No accounts yet. Add one above."}</div>`;
 }
 
+/* ============================================================
+   Everyone with a login, across every account
+   ============================================================ */
+function toggleUsers(){
+  showingUsers = !showingUsers;
+  if(showingUsers){ sel = null; renderRail(); renderAllUsers(); }
+  else renderQueue();
+  document.querySelector(".usersbtn")?.classList.toggle("on", showingUsers);
+}
+
+function renderAllUsers(){
+  const clients = users.filter(u => !u.is_staff);
+  const staff   = users.filter(u =>  u.is_staff);
+
+  const row = u => `<tr>
+    <td>${esc(u.full_name || "\u2014")}</td>
+    <td class="mono sm">${esc(u.email)}</td>
+    <td class="mono sm">${esc(u.phone || "\u2014")}</td>
+    <td>${esc(u.account || "\u2014")}</td>
+    <td class="sm">${day(u.created_at)}</td>
+    <td><button class="btn ghost sm" onclick="toggleActive('${esc(u.id)}',${!u.active})">${
+      u.active ? "Active" : "Disabled"}</button></td>
+    <td style="text-align:right"><button class="rm" title="Delete this login"
+      onclick="delUser('${esc(u.id)}','${esc(u.email)}')">&times;</button></td>
+  </tr>`;
+
+  $("detail").dataset.empty = "0";
+  $("detail").innerHTML = `
+    <div class="pane-h">
+      <h2>Users</h2>
+      <span class="sm">${clients.length} client${clients.length===1?"":"s"} \u00b7 ${
+        staff.length} AIM</span>
+      <div class="act"><button class="btn ghost sm" onclick="toggleUsers()">Back to queue</button></div>
+    </div>
+    <div class="pane-b">
+      <div id="msg"></div>
+
+      <div class="sub-h">Client logins</div>
+      <table>
+        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Account</th>
+                   <th>Joined</th><th>Login</th><th></th></tr></thead>
+        <tbody>${clients.length ? clients.map(row).join("")
+          : '<tr><td colspan="7"><div class="empty">No customers have signed up yet.</div></td></tr>'}</tbody>
+      </table>
+
+      <div class="sub-h">AIM staff</div>
+      <table>
+        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Account</th>
+                   <th>Joined</th><th>Login</th><th></th></tr></thead>
+        <tbody>${staff.length ? staff.map(row).join("")
+          : '<tr><td colspan="7"><div class="empty">Nobody yet.</div></td></tr>'}</tbody>
+      </table>
+    </div>`;
+}
+
+async function delUser(id, email){
+  if(!confirm("Delete the login for " + email + "?\n\n" +
+    "This removes the account entirely. If they have filed requests or logged " +
+    "time, it will be refused \u2014 disable the login instead.\n\nThis can't be undone.")) return;
+
+  const { error } = await sb.rpc("delete_user", { p_id: id });
+  if(error) return say(humanError(error), true);
+  await loadAll();
+  say(email + " deleted.");
+}
+
 function pick(id){
+  showingUsers = false;
   const same = (sel === id);
   sel = id;
   if(!same) tab = "requests";
@@ -727,6 +821,34 @@ function pick(id){
     $("detail").scrollIntoView({behavior:"smooth", block:"start"});
 }
 function backToQueue(){ sel = null; renderRail(); renderQueue(); }
+
+/* ============================================================
+   Disabling and deleting an account
+   ============================================================ */
+async function toggleAccount(id, makeActive){
+  const o = orgs.find(x => x.id === id);
+  if(!makeActive && !confirm(
+    "Disable " + o.name + "?\n\nNobody on this account will be able to sign in. " +
+    "Nothing is deleted and you can re-enable it any time.")) return;
+
+  const { error } = await sb.rpc("set_account_active",
+    { p_org_id: id, p_active: makeActive });
+  if(error) return say(humanError(error), true);
+  await loadAll();
+  say(o.name + (makeActive ? " re-enabled." : " disabled."));
+}
+
+async function delAccount(id){
+  const o = orgs.find(x => x.id === id);
+  if(!confirm("Delete " + o.name + "?\n\n" +
+    "This deletes all requests and history and can't be undone.")) return;
+
+  const { error } = await sb.rpc("delete_account", { p_org_id: id });
+  if(error) return say(humanError(error), true);
+  sel = null;
+  await loadAll();
+  renderQueue();
+}
 
 /* ============================================================
    Right pane — the queue, when no account is selected
@@ -757,7 +879,6 @@ function renderAccount(){
   const tabs = [
     ["requests", "Requests / Log", rs.length + logsOf(sel).length],
     ["people",   "Users",    us.length],
-    ["access",   "Access",   em.length + ds.length],
     ["hours",    "Support hours", blocksOf(sel).length],
     ["their",    "Their view",    0]
   ];
@@ -769,8 +890,14 @@ function renderAccount(){
       <button class="rn" id="rnBtn" title="Rename this account"
               onclick="startRename()" aria-label="Rename account">&#9998;</button>
       ${ds.map(d => `<span class="dm">${esc(d)}</span>`).join("")}
-      <button class="btn ghost sm" style="margin-left:auto"
-              onclick="backToQueue()">All requests</button>
+      <span style="margin-left:auto"></span>
+      ${o.active === false
+        ? '<span class="offtag">Disabled</span>' : ""}
+      <button class="btn ghost sm" onclick="toggleAccount('${esc(sel)}',${o.active === false})">${
+        o.active === false ? "Re-enable" : "Disable"}</button>
+      <button class="rm" title="Delete this account"
+              onclick="delAccount('${esc(sel)}')">&times;</button>
+      <button class="btn ghost sm" onclick="backToQueue()">All requests</button>
     </div>
     <div class="tabs">
       ${tabs.map(([k,label,n]) => `<button class="tab ${tab===k?"on":""}"
@@ -780,8 +907,7 @@ function renderAccount(){
       <div id="msg"></div>
       ${ tab==="requests" ? tabRequests(rs)
        : tab==="people"   ? tabPeople(us)
-       : tab==="access"   ? tabAccess(em, ds)
-       : tab==="their"    ? tabTheirView(rs)
+       : tab==="their"    ? tabTheirView()
        :                    tabHours() }
     </div>`;
 
@@ -799,91 +925,44 @@ function setTab(k){ tab = k; renderAccount(); }
    Read-only. It shows their screen; it does not prove their
    permissions, which only a real customer login can do.
    ============================================================ */
-function tabTheirView(rs){
-  const o  = orgs.find(x => x.id === sel);
-  const bl = blocksOf(sel);
-  const left  = hoursLeft(sel);
-  const total = bl.reduce((t,b) => t + Number(b.hours_purchased), 0);
-  const value = bl.reduce((t,b) => t + Number(b.value_left), 0);
-  const rate  = (bl.find(b => Number(b.hours_left) > 0) || bl[0])?.rate;
+/* ============================================================
+   Their view
 
-  // only what they can see
-  const visible = logsOf(sel).filter(l => l.internal === false);
-  const hidden  = logsOf(sel).length - visible.length;
-
-  const feed = [
-    ...(rs||[]).map(r => ({ at: r.created_at, kind:"req", row:r })),
-    ...visible.map(l  => ({ at: l.created_at, kind:"log", row:l }))
-  ].sort((x,y) => new Date(y.at) - new Date(x.at));
+   The real client portal, framed and read-only, so it can never
+   drift from what the customer is actually looking at. If they
+   phone up lost, this is their screen.
+   ============================================================ */
+function tabTheirView(){
+  const o = orgs.find(x => x.id === sel);
+  const hidden = logsOf(sel).filter(l => l.internal !== false).length;
 
   return `
     <div class="mirror-note">
-      A copy of ${esc(o.name)}'s screen &mdash; nothing here is clickable. ${hidden
+      ${esc(o.name)}'s screen, exactly as they see it &mdash; nothing here is
+      clickable. ${hidden
         ? "<b>"+hidden+"</b> internal note"+(hidden===1?"":"s")+" hidden from them."
         : "Nothing is hidden from them."}
+      <a href="index.html?preview=${esc(sel)}" target="_blank" class="mirror-open">
+        Open full size</a>
     </div>
-
-    <div class="mirror">
-      <div class="m-acct">${esc(o.name)}</div>
-
-      ${bl.length ? `
-        <div class="m-card">
-          <div class="m-h">Bank of Hours</div>
-          <div class="gauge" style="margin:0">
-            <b>${hrs(left)}</b>
-            <span>hours left of ${hrs(total)} \u00b7 ${money(value)}${
-              rate ? " \u00b7 " + money(rate) + "/hr" : ""}</span>
-          </div>
-        </div>` : ""}
-
-      <div class="m-card">
-        <div class="m-h">New request
-          <span class="m-sub">Add a line for each item. Submit once when the list is complete.</span>
-        </div>
-        <table class="m-tbl">
-          <thead><tr>
-            <th>Item or request</th><th class="w-type">Type</th>
-            <th class="w-qty">Qty</th><th class="w-ser">Serial / Unit</th><th></th>
-          </tr></thead>
-          <tbody><tr>
-            <td><input placeholder="Describe the item or request" disabled></td>
-            <td><select disabled>${
-              ["Service request","RMA / return","Spare part","Training","Phone tech support"]
-                .map(t => `<option>${t}</option>`).join("")}</select></td>
-            <td><input type="number" value="1" class="mono" disabled></td>
-            <td><input placeholder="AGV-0000" class="mono" disabled></td>
-            <td class="m-x">&times;</td>
-          </tr></tbody>
-        </table>
-        <div class="m-foot">
-          <span class="m-ghost">+ Add line</span>
-          <span class="m-btn">Submit request</span>
-          <span class="m-stamp">Date and time are recorded on submit.</span>
-        </div>
-      </div>
-
-      <div class="m-card">
-        <div class="m-h">Action log</div>
-        ${feed.length ? feed.map(f => f.kind === "req"
-          ? `<div class="m-req">
-               <b class="mono">${esc(f.row.ref)}</b>
-               <span class="m-tag">${esc(f.row.status)}</span>
-               <span class="sm">${fmt(f.row.created_at)}</span>
-               <ul class="lines">${(f.row.request_lines||[]).map(l =>
-                 `<li><span class="qty">${l.qty}\u00d7</span> ${esc(l.item)}
-                  <span class="kind">${esc(l.kind)}</span></li>`).join("")}</ul>
-             </div>`
-          : `<div class="entry ${f.row.from_aim === false ? "client" : "shared"}">
-               <div class="entry-h">
-                 <b>${f.row.from_aim === false ? esc(o.name) : "AIM"}</b>
-                 <span class="tagi">${esc(f.row.author || "")}</span>
-                 <span style="margin-left:auto">${fmt(f.row.created_at)}</span>
-               </div>
-               <div class="entry-b">${esc(f.row.body)}</div>
-             </div>`).join("")
-          : '<div class="empty">Nothing yet.</div>'}
-      </div>
+    <div class="mirror-frame">
+      <iframe src="index.html?preview=${esc(sel)}"
+              title="${esc(o.name)} portal preview"
+              onload="fitFrame(this)"></iframe>
     </div>`;
+}
+
+/* grow the frame to its content so there is no inner scrollbar */
+function fitFrame(f){
+  try{
+    const h = f.contentDocument.body.scrollHeight;
+    f.style.height = Math.max(420, h + 24) + "px";
+    // content loads in stages, so measure again shortly after
+    setTimeout(() => {
+      try{ f.style.height =
+        Math.max(420, f.contentDocument.body.scrollHeight + 24) + "px"; }catch(e){}
+    }, 900);
+  }catch(e){ f.style.height = "900px"; }
 }
 
 /* ---------- rename ---------- */
@@ -975,62 +1054,22 @@ async function addLog(){
 
 function tabPeople(us){
   return `<table>
-    <thead><tr><th>Name</th><th>Email</th><th>Joined</th><th>Login</th></tr></thead>
+    <thead><tr><th>Name</th><th>Email</th><th>Phone</th>
+               <th>Joined</th><th>Login</th><th></th></tr></thead>
     <tbody>${us.length ? us.map(u => `<tr>
-      <td>${esc(u.full_name || "—")}</td>
+      <td>${esc(u.full_name || "\u2014")}</td>
       <td class="mono sm">${esc(u.email)}</td>
+      <td class="mono sm">${esc(u.phone || "\u2014")}</td>
       <td class="sm">${day(u.created_at)}</td>
       <td><button class="btn ghost sm" onclick="toggleActive('${esc(u.id)}',${!u.active})">${
         u.active ? "Active" : "Disabled"}</button></td>
+      <td style="text-align:right"><button class="rm" title="Delete this login"
+        onclick="delUser('${esc(u.id)}','${esc(u.email)}')">&times;</button></td>
     </tr>`).join("")
-    : '<tr><td colspan="4"><div class="empty">Nobody has signed up yet.</div></td></tr>'}</tbody>
+    : '<tr><td colspan="6"><div class="empty">Nobody has signed up yet.</div></td></tr>'}</tbody>
   </table>`;
 }
 
-function tabAccess(em, ds){
-  return `
-    <div class="sub-h">Approved email domains</div>
-    <p class="note" style="margin-top:0">Anyone with an address at these domains can
-      create a login on this account.</p>
-    <div class="form-row" style="margin-top:10px">
-      <div class="f"><label for="dmNew">Add a domain</label>
-        <input id="dmNew" placeholder="shawinc.com" class="mono"></div>
-      <button class="btn" onclick="addDomain()">Add domain</button>
-    </div>
-    <table>
-      <tbody>${ds.length ? ds.map(d => `<tr>
-        <td class="mono">${esc(d)}</td>
-        <td style="text-align:right"><button class="rm" title="Remove"
-          onclick="rmDomain('${esc(d)}')">&times;</button></td>
-      </tr>`).join("")
-      : '<tr><td><div class="empty">No domain set. Nobody can sign up to this account yet.</div></td></tr>'}</tbody>
-    </table>
-
-    <div class="sub-h">Named people</div>
-    <p class="note" style="margin-top:0">Listing someone here puts them on this account
-      whatever their domain — that's how three plants share one company's email domain.</p>
-    <div class="form-row" style="margin-top:10px">
-      <div class="f"><label for="azEm">Email</label>
-        <input id="azEm" placeholder="name@shawinc.com" class="mono"></div>
-      <div class="f"><label for="azNote">Note</label>
-        <input id="azNote" placeholder="Maintenance manager"></div>
-      <button class="btn" onclick="authorize()">Add person</button>
-    </div>
-    <table>
-      <thead><tr><th>Email</th><th>Note</th><th>Status</th><th></th></tr></thead>
-      <tbody>${em.length ? em.map(a => `<tr>
-        <td class="mono">${esc(a.email)}</td>
-        <td class="sm">${esc(a.note || "")}</td>
-        <td class="sm">${a.used ? "signed up" : "not yet"}</td>
-        <td style="text-align:right"><button class="rm" onclick="revoke('${esc(a.email)}')">&times;</button></td>
-      </tr>`).join("")
-      : '<tr><td colspan="4"><div class="empty">Nobody named yet.</div></td></tr>'}</tbody>
-    </table>`;
-}
-
-/* ============================================================
-   Work order
-   ============================================================ */
 function woHtml(r, showOrg){
   const o = orgs.find(x => x.id === r.org_id);
   return `<div class="wo">
@@ -1386,7 +1425,8 @@ Object.assign(window, { signIn, signOut, pick, backToQueue, setTab,
   createAccount, addDomain, rmDomain, authorize, revoke, toggleActive,
   setStatus, addBlock, logTime, loadThread, postMsg, editMsg, saveMsg,
   openReply, addLog, toggleAdd, startRename, saveRename,
-  delBlock, delEntry, delLog, tabTheirView });
+  delBlock, delEntry, delLog, tabTheirView, fitFrame,
+  toggleUsers, delUser, toggleAccount, delAccount });
 
 $("find").oninput = e => { filter = e.target.value; renderRail(); };
 boot();

@@ -266,6 +266,39 @@
             letter-spacing:-.3px}
   .acctname[hidden]{display:none}
   @media (max-width:620px){ .acctname{font-size:21px;margin-bottom:11px} }
+
+  /* framed inside admin: no page chrome, nothing interactive */
+  body.preview{background:#fff}
+  body.preview .banner,body.preview .bar{display:none}
+  body.preview main{padding:0;max-width:none}
+  body.preview .acctname{margin-top:0}
+  body.preview input,body.preview select,body.preview textarea{
+    background:#fbfcfd;color:#7b8798;-webkit-text-fill-color:#7b8798;
+    opacity:1;cursor:default}
+  body.preview button{opacity:.5;cursor:default}
+  body.preview .linkbtn.tiny{pointer-events:none}
+
+  /* phone entry */
+  .phonerow{display:flex;align-items:stretch;gap:0}
+  .phonerow .cc{display:flex;align-items:center;padding:0 8px 0 11px;
+    border:1px solid var(--line);border-right:0;border-radius:7px 0 0 7px;
+    background:#f7f9fb;color:#5d6874;font-size:14px}
+  .phonerow .ccin{width:52px;border-radius:0;border-right:0;text-align:center;
+    padding-left:4px;padding-right:4px}
+  .phonerow input:last-child{border-radius:0 7px 7px 0;flex:1;min-width:0}
+
+  /* how to set up a bank of hours */
+  .bankcopy{font-size:14px;color:#22303c;margin:0 0 11px;line-height:1.6}
+  .bankcopy:last-child{margin-bottom:0}
+  .bankcopy.sm{font-size:13px;color:#5d6874}
+  #noBank .panel-body{padding-top:15px}
+
+  /* my details */
+  #profileBox{margin-top:6px}
+  #profForm[hidden],#profOpen[hidden]{display:none}
+
+  .forgot{display:block;margin-top:13px}
+  .gate .msgbox{margin-top:16px}
 </style>
 </head>
 <body>
@@ -390,7 +423,16 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
       <label for="nm">Full name <span style="font-weight:400;text-transform:none">&mdash; first time only</span></label>
       <input id="nm" type="text" autocomplete="name" placeholder="Your name">
     </div>
+    <div class="field" id="phoneField">
+      <label for="ph">Phone <span style="font-weight:400;text-transform:none">&mdash; first time only, so we can call you</span></label>
+      <div class="phonerow">
+        <span class="cc">+</span>
+        <input id="cc" class="ccin mono" value="1" inputmode="numeric" maxlength="3">
+        <input id="ph" type="tel" autocomplete="tel" placeholder="704 246 3961">
+      </div>
+    </div>
     <button class="btn" id="gateBtn" onclick="signIn()">Sign in</button>
+    <button class="linkbtn tiny forgot" onclick="forgotPassword()">Forgot password?</button>
     <p class="note">
       Personal email addresses aren't accepted &mdash; use your company address.
       If your company isn't set up yet, contact
@@ -448,6 +490,22 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
 
 
 
+    <section class="panel" id="noBank" hidden>
+      <div class="panel-head">
+        <h3>Phone support</h3>
+        <div class="sub">How to set up a Bank of Hours.</div>
+      </div>
+      <div class="panel-body">
+        <p class="bankcopy">Phone and remote support is drawn from a prepaid
+          <b>Bank of Hours</b>, billed at <b>$195/hr</b> in quarter-hour increments.
+          The minimum is <b>5 hours &mdash; $975</b>, paid 100% up front.</p>
+        <p class="bankcopy">Send a PO to <b>agvservice@weareaim.com</b> or call
+          <b>(704) 850-9200</b>. Your Bank appears on this page as soon as the PO is
+          received, and the balance updates every time an AIM technician logs time.</p>
+        <p class="bankcopy sm">Support is worked 9AM&ndash;5PM Eastern, Monday to Friday.</p>
+      </div>
+    </section>
+
     <section class="panel" id="msgPanel">
       <div class="panel-head">
         <h3>Action log</h3>
@@ -459,6 +517,25 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
       </div>
     </section>
 
+  </div>
+
+  <div id="profileBox" hidden>
+    <button class="linkbtn tiny" id="profOpen" onclick="openProfile()">Update my phone number</button>
+    <div id="profForm" hidden>
+      <div class="msgbox" style="max-width:420px">
+        <label for="pcc">Phone</label>
+        <div class="phonerow">
+          <span class="cc">+</span>
+          <input id="pcc" class="ccin mono" inputmode="numeric" maxlength="3">
+          <input id="pph" type="tel" placeholder="704 246 3961">
+        </div>
+        <div class="msgfoot">
+          <button class="btn" onclick="saveProfile()">Save</button>
+          <button class="linkbtn tiny" onclick="closeProfile()">Cancel</button>
+        </div>
+        <div id="profErr"></div>
+      </div>
+    </div>
   </div>
 
 </main>
@@ -541,6 +618,12 @@ async function signIn(){
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return gateErr("Enter a valid email address.");
   if(!pw) return gateErr("Enter your password.");
 
+  // phone is only needed when the account is being created, but we
+  // can't know that until the sign-in attempt fails, so check it here
+  const cc  = ($("cc") ? $("cc").value.trim() : "1") || "1";
+  const ph  = ($("ph") ? $("ph").value.trim() : "");
+  const dig = ph.replace(/\D/g, "");
+
   const btn = $("gateBtn");
   btn.disabled = true; btn.textContent = "Signing in\u2026";
 
@@ -550,9 +633,14 @@ async function signIn(){
     // no account yet: create one. The database decides whether the
     // domain is allowed, so a stranger gets refused here.
     if(error && /invalid login credentials/i.test(error.message)){
+      // creating an account: name and a callable number are required
+      if(!name) return gateErr("Enter your name \u2014 first time only.");
+      if(dig.length < 10)
+        return gateErr("Enter a phone number with area code, so we can call you back.");
+
       const up = await sb.auth.signUp({
         email, password: pw,
-        options:{ data: name ? { full_name: name } : undefined }
+        options:{ data: { full_name: name, phone: ph, phone_cc: cc.replace(/\D/g,"") || "1" } }
       });
       if(up.error) throw up.error;
 
@@ -571,6 +659,78 @@ async function signIn(){
   }
 }
 
+/* ============================================================
+   Forgot password
+
+   Uses whatever is already in the email box, so there is no
+   second form to fill in. Supabase sends the link; the person
+   lands back here with a recovery session and sets a new one.
+   ============================================================ */
+async function forgotPassword(){
+  const email = $("em").value.trim().toLowerCase();
+  $("gateErr").innerHTML = "";
+
+  if(!email) {
+    $("em").focus();
+    return gateErr("Enter your email address first.");
+  }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
+    return gateErr("Enter a valid email address.");
+
+  try{
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: location.origin + location.pathname
+    });
+    if(error) throw error;
+
+    // deliberately vague: don't confirm whether an account exists
+    gateOk("If there's an account for <b>"+esc(email)+"</b>, a reset link is on "+
+           "its way. It's good for one hour.");
+  }catch(e){
+    gateErr(humanError(e));
+  }
+}
+
+/* Clicking the emailed link returns here with a recovery session.
+   Show a set-a-new-password box rather than the normal sign-in. */
+function showNewPassword(){
+  $("gate").hidden = false;
+  $("gateErr").innerHTML = "";
+  $("gate").querySelectorAll(".field, #gateBtn, .forgot, .note").forEach(el => el.hidden = true);
+  $("gate").querySelector("h2").textContent = "Set a new password";
+  $("gate").querySelector("p").innerHTML =
+    "Choose a new password for your account. At least 6 characters.";
+
+  if(!$("npBox")){
+    const box = document.createElement("div");
+    box.id = "npBox";
+    box.innerHTML = `
+      <div class="field">
+        <label for="np">New password</label>
+        <input id="np" type="password" autocomplete="new-password"
+               onkeydown="if(event.key==='Enter')setNewPassword()">
+      </div>
+      <button class="btn" id="npBtn" onclick="setNewPassword()">Save password</button>`;
+    $("gateErr").after(box);
+  }
+  $("np").focus();
+}
+
+async function setNewPassword(){
+  const pw = $("np").value;
+  if(pw.length < 6) return gateErr("Password must be at least 6 characters.");
+
+  const btn = $("npBtn"); btn.disabled = true; btn.textContent = "Saving\u2026";
+  try{
+    const { error } = await sb.auth.updateUser({ password: pw });
+    if(error) throw error;
+    location.replace(location.pathname);   // straight in with the new password
+  }catch(e){
+    gateErr(humanError(e));
+    btn.disabled = false; btn.textContent = "Save password";
+  }
+}
+
 async function signOut(){
   await sb.auth.signOut();
   location.reload();
@@ -579,22 +739,45 @@ async function signOut(){
 /* ============================================================
    Session -> who am I
    ============================================================ */
+/* Preview mode: admin frames this page to show a customer exactly
+   what they see. Staff only, look-only — every control is disabled
+   and the page is inert. */
+const PREVIEW = new URLSearchParams(location.search).get("preview");
+
 async function boot(){
   const { data:{ session } } = await sb.auth.getSession();
   if(!session){ $("gate").hidden = false; return; }
 
   const u = session.user;
+  const isStaff = u.email.split("@")[1].toLowerCase() === STAFF_DOMAIN;
 
-  // AIM staff have their own page. Send them there rather than
-  // rendering a customer view they can't use.
-  if(u.email.split("@")[1].toLowerCase() === STAFF_DOMAIN){
+  if(isStaff && !PREVIEW){
+    // AIM staff have their own page
     location.replace("admin.html");
     return;
   }
 
-  // the signup trigger made this row; read it back for the org
-  const { data:prof } = await sb.from("profiles")
-    .select("full_name, org_id, active, orgs(name)").eq("id", u.id).single();
+  if(PREVIEW && !isStaff){
+    // a customer can't preview anyone, including themselves
+    location.replace(location.pathname);
+    return;
+  }
+
+  let prof;
+  if(PREVIEW){
+    // render as the chosen account. RLS still applies — staff can
+    // read customer rows, so nothing here is privileged.
+    const { data:org } = await sb.from("orgs")
+      .select("id, name").eq("id", PREVIEW).single();
+    if(!org){ document.body.innerHTML =
+      '<p style="padding:24px;font:15px sans-serif">Account not found.</p>'; return; }
+    prof = { full_name: "", org_id: org.id, active: true, orgs: { name: org.name } };
+  }else{
+    // the signup trigger made this row; read it back for the org
+    const r = await sb.from("profiles")
+      .select("full_name, org_id, active, phone, phone_cc, orgs(name)").eq("id", u.id).single();
+    prof = r.data;
+  }
 
   if(prof && prof.active === false){
     $("gate").hidden = false;
@@ -606,7 +789,9 @@ async function boot(){
     email: u.email,
     name: prof?.full_name || u.user_metadata?.full_name || u.email.split("@")[0],
     org_id: prof?.org_id || null,
-    org_name: prof?.orgs?.name || null
+    org_name: prof?.orgs?.name || null,
+    phone:    prof?.phone || "",
+    phone_cc: prof?.phone_cc || "1"
   };
 
   // if the name never got captured, save it now
@@ -619,8 +804,22 @@ async function boot(){
     $("acctName").textContent = me.org_name;
     $("acctName").hidden = false;
   }
-  $("who").hidden = false;
   $("gate").hidden = true;
+
+  if(PREVIEW){
+    document.body.classList.add("preview");
+    $("who").hidden = true;
+    $("portal").hidden = false;
+    if(!rows.length) addRow();      // the customer sees one blank line
+    await loadMine();
+    await loadMessages();
+    await loadSupport();
+    lockDown();
+    return;
+  }
+
+  $("who").hidden = false;
+  $("profileBox").hidden = false;
 
   if(!me.org_id){
     // domain serves several sites; make them choose before anything else
@@ -642,6 +841,7 @@ function rmRow(i){ rows.splice(i,1); rows.length ? render() : addRow(); }
 function setF(i,f,v){ rows[i][f] = v; }
 
 function render(){
+  if(PREVIEW) setTimeout(lockDown, 0);
   $("rows").innerHTML = rows.map((r,i)=>`
     <tr>
       <td data-l="Item or request">
@@ -690,10 +890,20 @@ async function submitReq(){
       })));
     if(e2) throw e2;
 
+    const parts   = lines.some(l => ["Spare part","RMA / return"].includes(l.type));
+    const service = lines.some(l => !["Spare part","RMA / return"].includes(l.type));
+    const numbers = [
+      service ? "the service line on <b>(704) 850-9200</b>" : null,
+      parts   ? "the parts line on <b>(704) 850-9310</b>"   : null
+    ].filter(Boolean).join(" or ");
+
     rows = []; addRow();
     await loadMine();
-    toast("<b>"+esc(req.ref)+"</b> submitted "+fmt(req.created_at)+
-          ". AIM service has been notified.");
+    await loadMessages();
+    toast("<b>"+esc(req.ref)+"</b> sent "+fmt(req.created_at)+
+          ". It will be reviewed the next business day \u2014 support is worked " +
+          "9AM\u20135PM Eastern, Monday to Friday. If this is an emergency, call " +
+          numbers + ".");
   }catch(e){
     toastErr(humanError(e));
   }finally{
@@ -758,6 +968,7 @@ async function loadMessages(){
 }
 
 function renderMessages(){
+  if(PREVIEW) setTimeout(lockDown, 0);
   const feed = [
     ...reqs.map(r  => ({ at: r.created_at, kind: "req", row: r })),
     ...mlogs.map(l => ({ at: l.created_at, kind: "log", row: l }))
@@ -836,9 +1047,17 @@ async function loadSupport(){
 
 /* ---------- what the client sees ---------- */
 function renderSupportMine(){
+  if(PREVIEW) setTimeout(lockDown, 0);
 
   const mine = blocks.filter(b => b.org_id === me.org_id);
-  if(!mine.length){ $("supPanel").hidden = true; return; }
+
+  // nothing bought yet: explain how, instead of showing an empty panel
+  if(!mine.length){
+    $("supPanel").hidden = true;
+    if($("noBank")) $("noBank").hidden = false;
+    return;
+  }
+  if($("noBank")) $("noBank").hidden = true;
   $("supPanel").hidden = false;
 
   const left  = mine.reduce((t,b)=>t + Number(b.hours_left), 0);
@@ -1031,17 +1250,67 @@ async function refreshAfterMessage(reqId){
   await loadMine();
 }
 
+/* ---------- my details ---------- */
+function openProfile(){
+  $("pcc").value = me.phone_cc || "1";
+  $("pph").value = me.phone || "";
+  $("profOpen").hidden = true;
+  $("profForm").hidden = false;
+  $("pph").focus();
+}
+function closeProfile(){
+  $("profForm").hidden = true;
+  $("profOpen").hidden = false;
+  $("profErr").innerHTML = "";
+}
+
+async function saveProfile(){
+  const cc = ($("pcc").value.replace(/\D/g,"") || "1");
+  const ph = $("pph").value.trim();
+  const fail = m => $("profErr").innerHTML = '<div class="err">'+esc(m)+'</div>';
+
+  if(ph.replace(/\D/g,"").length < 10)
+    return fail("Enter a phone number with area code.");
+
+  const { error } = await sb.from("profiles")
+    .update({ phone: ph, phone_cc: cc }).eq("id", me.id);
+  if(error) return fail(humanError(error));
+
+  me.phone = ph; me.phone_cc = cc;
+  closeProfile();
+}
+
+/* Nothing in a preview can be typed in, clicked, or submitted.
+   Re-applied after each render, since panels redraw. */
+function lockDown(){
+  document.querySelectorAll(
+    "#portal input, #portal select, #portal textarea, #portal button"
+  ).forEach(el => { el.disabled = true; el.tabIndex = -1; });
+}
+
 /* ---------- inline handlers need these on window ---------- */
 Object.assign(window, { signIn, signOut, addRow, rmRow, setF, submitReq,
-  claimSite, loadThread, postMsg, editMsg, saveMsg, openReply });
+  claimSite, loadThread, postMsg, editMsg, saveMsg, openReply,
+  openProfile, closeProfile, saveProfile,
+  forgotPassword, setNewPassword });
 
 /* ---------- go ---------- */
 render();
-boot();
+
+// a recovery link puts type=recovery in the URL hash
+if(/[#&]type=recovery/.test(location.hash)){
+  sb.auth.onAuthStateChange((evt) => {
+    if(evt === "PASSWORD_RECOVERY" || evt === "SIGNED_IN") showNewPassword();
+  });
+  setTimeout(showNewPassword, 1200);   // in case the event already fired
+}else{
+  boot();
+}
 
 // clicking the emailed link lands back here with a token in the URL
 sb.auth.onAuthStateChange((evt) => {
-  if(evt === "SIGNED_IN" && !me) boot();
+  if(evt === "PASSWORD_RECOVERY") return;
+  if(evt === "SIGNED_IN" && !me && !/[#&]type=recovery/.test(location.hash)) boot();
 });
 
 </script>
