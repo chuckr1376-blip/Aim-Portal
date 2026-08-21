@@ -6,7 +6,7 @@
 <title>Dispatch — AIM</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Barlow+Condensed:wght@600&display=swap" rel="stylesheet">
 <style>/* ============================================================
    AIM Admin — service dispatch board
 
@@ -31,10 +31,10 @@
 html,body{height:100%}
 body{
   margin:0;background:var(--paper);color:#16233a;
-  font:15px/1.55 Barlow,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font:15px/1.55 Montserrat,-apple-system,"Segoe UI",Roboto,sans-serif;
   -webkit-font-smoothing:antialiased;
 }
-.cond{font-family:"Barlow Condensed",Barlow,sans-serif}
+.cond{font-family:"Barlow Condensed",Montserrat,sans-serif}
 .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 
 /* ---------- masthead ---------- */
@@ -56,7 +56,7 @@ body{
 /* live counters read like a dispatch board, not dashboard cards */
 .tick{padding:11px 22px;border-left:1px solid rgba(255,255,255,.14);
   display:flex;flex-direction:column;justify-content:center;min-width:96px}
-.tick b{font-size:21px;font-weight:600;line-height:1.1;font-family:"Barlow Condensed",sans-serif}
+.tick b{font-size:19px;font-weight:700;line-height:1.1;font-family:Montserrat,sans-serif}
 .tick span{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
   color:#8fa6c6;font-weight:500}
 .tick.alert b{color:#ff8b9c}
@@ -74,10 +74,10 @@ body{
   overflow:hidden}
 .pane-h{padding:13px 17px;border-bottom:1px solid var(--line);
   display:flex;align-items:center;gap:10px}
-.pane-h h2{margin:0;font-family:"Barlow Condensed",sans-serif;
-  font-size:13.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;
+.pane-h h2{margin:0;font-family:Montserrat,sans-serif;
+  font-size:11.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;
   color:var(--steel)}
-.pane-h h2.big{font-size:21px;letter-spacing:.13em;color:var(--navy)}
+.pane-h h2.big{font-size:17px;letter-spacing:.09em;color:var(--navy)}
 .pane-h .act{margin-left:auto}
 .pane-b{padding:17px}
 
@@ -99,8 +99,8 @@ body{
 .tk:before{background:#eceff4}
 .tk.on:before{background:var(--orange)}
 .tk.busy:before{background:var(--orange)}
-.tk-n{font-family:"Barlow Condensed",sans-serif;font-size:17.5px;font-weight:600;
-  letter-spacing:.02em;color:var(--navy);line-height:1.2}
+.tk-n{font-family:Montserrat,sans-serif;font-size:15px;font-weight:600;
+  letter-spacing:-.01em;color:var(--navy);line-height:1.2}
 .tk-d{font-size:11.5px;color:var(--steel);margin-top:1px;
   font-family:ui-monospace,Menlo,monospace}
 .tk-r{display:flex;gap:7px;align-items:center;margin-top:6px;flex-wrap:wrap}
@@ -114,8 +114,8 @@ body{
 .tabs{display:flex;gap:0;border-bottom:1px solid var(--line);
   padding:0 17px;overflow-x:auto}
 .tab{background:none;border:0;border-bottom:2px solid transparent;
-  padding:12px 14px;font:inherit;font-family:"Barlow Condensed",sans-serif;
-  font-size:14px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  padding:12px 13px;font:inherit;font-family:Montserrat,sans-serif;
+  font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
   color:var(--steel);cursor:pointer;white-space:nowrap}
 .tab:hover{color:var(--navy)}
 .tab.on{color:var(--navy);border-bottom-color:var(--red)}
@@ -148,8 +148,8 @@ body{
 .msg.from-client{background:#fafbfc;border-left:3px solid #c9d2de}
 .msg-h{display:flex;gap:9px;align-items:center;flex-wrap:wrap;
   font-size:11.5px;color:var(--steel);margin-bottom:3px}
-.msg-h b{color:var(--navy);font-size:12px;font-family:"Barlow Condensed",sans-serif;
-  letter-spacing:.1em;text-transform:uppercase}
+.msg-h b{color:var(--navy);font-size:10.5px;font-family:Montserrat,sans-serif;
+  letter-spacing:.08em;font-weight:700;text-transform:uppercase}
 .msg-b{white-space:pre-wrap;color:#16233a}
 .msg-empty{font-size:13px;color:#8b98ab;padding:2px 0 8px}
 .chip{background:#fff;border:1px solid var(--line);border-radius:20px;
@@ -162,8 +162,8 @@ input.tiny-in,input.tiny-in:not([type]){width:84px;flex:0 0 auto;padding:8px 10p
   border-radius:7px;font:inherit;font-size:13px}
 
 /* ---------- forms ---------- */
-label{display:block;font-family:"Barlow Condensed",sans-serif;font-size:12px;
-  font-weight:600;letter-spacing:.11em;text-transform:uppercase;
+label{display:block;font-family:Montserrat,sans-serif;font-size:10.5px;
+  font-weight:600;letter-spacing:.09em;text-transform:uppercase;
   color:var(--steel);margin-bottom:4px}
 /* bare <input> has no type attribute, so match it explicitly too */
 input:not([type]),input[type=text],input[type=email],input[type=password],
@@ -189,8 +189,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--navy);
 
 /* ---------- tables ---------- */
 table{width:100%;border-collapse:collapse}
-th{text-align:left;font-family:"Barlow Condensed",sans-serif;font-size:11.5px;
-  font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--steel);
+th{text-align:left;font-family:Montserrat,sans-serif;font-size:10px;
+  font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--steel);
   padding:8px 12px;border-bottom:1px solid var(--line);background:#fafbfd}
 td{padding:9px 12px;border-bottom:1px solid var(--line-2);font-size:14px}
 tr:last-child td{border-bottom:0}
@@ -198,7 +198,7 @@ tr:last-child td{border-bottom:0}
 
 /* ---------- support hours ---------- */
 .gauge{display:flex;align-items:baseline;gap:12px;margin-bottom:3px}
-.gauge b{font-family:"Barlow Condensed",sans-serif;font-size:34px;font-weight:600;
+.gauge b{font-family:Montserrat,sans-serif;font-size:28px;font-weight:700;
   color:var(--navy);line-height:1}
 .gauge span{font-size:13.5px;color:var(--steel)}
 .bar{height:7px;background:#e7ecf2;border-radius:5px;overflow:hidden;margin:9px 0 14px}
@@ -207,7 +207,7 @@ tr:last-child td{border-bottom:0}
 .bar.warn i{background:var(--amber)}
 .blk{border-top:1px solid var(--line-2);padding:11px 0}
 .blk-h{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;font-size:14px}
-.blk-h b{font-family:"Barlow Condensed",sans-serif;font-size:16px}
+.blk-h b{font-family:Montserrat,sans-serif;font-size:14px;font-weight:600}
 .ent{display:grid;grid-template-columns:56px 1fr auto;gap:10px;
   padding:6px 0;font-size:13px;border-top:1px dotted var(--line)}
 .ent .eh{font-family:ui-monospace,Menlo,monospace;font-weight:600;color:var(--navy)}
@@ -219,16 +219,16 @@ tr:last-child td{border-bottom:0}
 .err{background:#fdeef0;border-left:3px solid var(--red);color:#8c1425}
 .ok{background:#eaf4ee;border-left:3px solid var(--green);color:#0a5c39}
 .note{font-size:13px;color:var(--steel);margin:6px 0 0}
-.sub-h{font-family:"Barlow Condensed",sans-serif;font-size:12.5px;font-weight:600;
-  letter-spacing:.13em;text-transform:uppercase;color:var(--steel);
+.sub-h{font-family:Montserrat,sans-serif;font-size:10.5px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--steel);
   margin:20px 0 9px;padding-bottom:5px;border-bottom:1px solid var(--line-2)}
 .sub-h:first-child{margin-top:0}
 
 /* ---------- sign in ---------- */
 .gate{max-width:430px;margin:64px auto;background:#fff;border:1px solid var(--line);
   border-top:3px solid var(--red);border-radius:11px;padding:30px}
-.gate h2{margin:0 0 6px;font-family:"Barlow Condensed",sans-serif;font-size:27px;
-  font-weight:600;letter-spacing:.03em;color:var(--navy)}
+.gate h2{margin:0 0 6px;font-family:Montserrat,sans-serif;font-size:22px;
+  font-weight:700;letter-spacing:-.02em;color:var(--navy)}
 .gate p{margin:0 0 20px;font-size:14px;color:var(--steel)}
 .gate .f{margin-bottom:14px}
 .gate .btn{width:100%;justify-content:center}
@@ -262,8 +262,8 @@ tr:last-child td{border-bottom:0}
 /* ---------- add account, collapsed by default ---------- */
 .addbtn{display:flex;align-items:center;gap:9px;width:100%;
   background:var(--orange);color:#fff;border:0;border-radius:11px;
-  padding:13px 16px;font:inherit;font-family:"Barlow Condensed",sans-serif;
-  font-size:17px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  padding:13px 16px;font:inherit;font-family:Montserrat,sans-serif;
+  font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
   cursor:pointer;margin-bottom:16px}
 .addbtn:hover{background:#a94a06}
 .addbtn i{font-style:normal;font-size:20px;line-height:1}
@@ -298,19 +298,19 @@ tr:last-child td{border-bottom:0}
 /* ---------- account header ---------- */
 .acct-h{display:flex;align-items:center;gap:11px;flex-wrap:wrap;
   padding:14px 17px;border-bottom:1px solid var(--line)}
-.acct-h .nm{font-family:"Barlow Condensed",sans-serif;font-size:26px;font-weight:600;
-  color:var(--navy);letter-spacing:.03em;line-height:1.1}
+.acct-h .nm{font-family:Montserrat,sans-serif;font-size:21px;font-weight:700;
+  color:var(--navy);letter-spacing:-.02em;line-height:1.1}
 .acct-h .dm{border:1px solid var(--line);color:var(--steel);font-size:11.5px;
   padding:2px 8px;border-radius:4px;font-family:ui-monospace,Menlo,monospace}
 
 /* ---------- support hours ---------- */
 .hero{display:flex;align-items:flex-end;gap:22px;flex-wrap:wrap;margin-bottom:11px}
-.hero .big{font-family:"Barlow Condensed",sans-serif;font-size:52px;font-weight:600;
+.hero .big{font-family:Montserrat,sans-serif;font-size:42px;font-weight:700;
   color:var(--navy);line-height:.9}
 .hero .big u{text-decoration:none;font-size:20px;color:var(--steel);margin-left:5px}
 .hero .cap{font-size:12.5px;color:var(--steel);margin-top:4px}
 .hero .money{border-left:1px solid var(--line);padding-left:22px}
-.hero .money b{font-family:"Barlow Condensed",sans-serif;font-size:24px;font-weight:600;
+.hero .money b{font-family:Montserrat,sans-serif;font-size:20px;font-weight:700;
   color:var(--navy);display:block;line-height:1.1}
 
 /* the bar drains navy -> amber -> red, so the colour means something */
@@ -321,8 +321,8 @@ tr:last-child td{border-bottom:0}
 .blank{background:var(--orange-soft);border:1px solid #f0d9bd;border-radius:11px;
   padding:30px 20px;text-align:center}
 .blank .ic{font-size:34px;color:var(--orange);line-height:1;margin-bottom:9px}
-.blank h4{margin:0 0 4px;font-family:"Barlow Condensed",sans-serif;font-size:19px;
-  font-weight:600;color:var(--orange-ink)}
+.blank h4{margin:0 0 4px;font-family:Montserrat,sans-serif;font-size:16px;
+  font-weight:700;color:var(--orange-ink)}
 .blank p{margin:0 0 16px;font-size:13.5px;color:#a8763a}
 .sellbox{display:inline-flex;gap:11px;align-items:flex-end;background:#fff;
   border:1px solid #f0d9bd;border-radius:9px;padding:13px 15px;text-align:left}
@@ -343,8 +343,8 @@ tr:last-child td{border-bottom:0}
   padding:2px 5px;line-height:1}
 .rn:hover{color:var(--orange)}
 .renaming{display:flex;gap:8px;align-items:center;flex:1 1 260px;min-width:0}
-.renaming input{font-family:"Barlow Condensed",sans-serif;font-size:22px;
-  font-weight:600;color:var(--navy);padding:5px 10px;max-width:340px}
+.renaming input{font-family:Montserrat,sans-serif;font-size:19px;
+  font-weight:700;color:var(--navy);padding:5px 10px;max-width:340px}
 
 /* delete controls sit quiet until hovered */
 .blk-h .rm,.ent .rm{opacity:.35;margin-left:7px}
@@ -400,8 +400,8 @@ tr:last-child td{border-bottom:0}
 /* the users list lives one click above the accounts */
 .usersbtn{display:flex;align-items:center;gap:9px;width:100%;
   background:#fff;color:var(--navy);border:1px solid var(--line);border-radius:11px;
-  padding:12px 16px;font:inherit;font-family:"Barlow Condensed",sans-serif;
-  font-size:16px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  padding:12px 16px;font:inherit;font-family:Montserrat,sans-serif;
+  font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
   cursor:pointer;margin-bottom:16px}
 .usersbtn:hover{border-color:var(--steel)}
 .usersbtn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
@@ -414,6 +414,12 @@ tr:last-child td{border-bottom:0}
 .tk.off{opacity:.75}
 .tk.off:before{background:#d4d9e0}
 .acct-h .rm{font-size:19px}
+
+.rm.ed{font-size:14px}
+.entry-b textarea{width:100%;padding:8px 11px;border:1px solid var(--line);
+  border-radius:7px;font:inherit;font-size:14px;resize:vertical;background:#fff}
+.editrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.editrow .sm{color:var(--steel)}
 </style>
 </head>
 <body>
@@ -1006,8 +1012,7 @@ function tabRequests(rs){
   return `
     <div class="logbox">
       <label for="lgBody">Add a note</label>
-      <textarea id="lgBody" rows="2"
-        placeholder="Email from Saft — charger fault on two units, sending a tech Thursday."></textarea>
+      <textarea id="lgBody" rows="2"></textarea>
       <div class="logrow">
         <label class="toggle">
           <input type="checkbox" id="lgInternal" checked>
@@ -1032,10 +1037,14 @@ function logHtml(l){
       <b>${fromClient ? "FROM THE CUSTOMER"
            : (l.internal ? "INTERNAL NOTE" : "NOTE \u2014 CUSTOMER CAN SEE")}</b>
       <span class="tagi">${esc(l.author || "AIM")}</span>
-      <span style="margin-left:auto">${fmt(l.created_at)}</span>
+      <span style="margin-left:auto">${fmt(l.created_at)}${
+        l.edited_at ? " \u00b7 edited" : ""}</span>
+      ${fromClient ? "" :
+        `<button class="rm ed" title="Edit this note"
+                 onclick="editLog(${l.id})">&#9998;</button>`}
       <button class="rm" title="Delete this note" onclick="delLog(${l.id})">&times;</button>
     </div>
-    <div class="entry-b">${esc(l.body)}</div>
+    <div class="entry-b" id="lb_${l.id}">${esc(l.body)}</div>
   </div>`;
 }
 
@@ -1212,6 +1221,32 @@ async function delEntry(id){
   if(error) return say(humanError(error), true);
   await loadAll();
   say(hrs(e.hours) + " hours returned to the Bank.");
+}
+
+function editLog(id){
+  const l  = logs.find(x => x.id === id);
+  const el = $("lb_"+id);
+  if(!l || !el || el.dataset.editing) return;
+  el.dataset.editing = "1";
+  el.innerHTML = `
+    <textarea id="le_${id}" rows="3">${esc(l.body)}</textarea>
+    <div class="editrow">
+      <button class="btn sm" onclick="saveLog(${id})">Save</button>
+      <button class="linkbtn tiny" onclick="renderAccount()">Cancel</button>
+      <span class="sm">${l.internal
+        ? "Internal \u2014 stays hidden from the customer."
+        : "The customer can see this. Edits are marked."}</span>
+    </div>`;
+  $("le_"+id).focus();
+}
+
+async function saveLog(id){
+  const body = $("le_"+id).value.trim();
+  if(!body) return say("A note can't be empty \u2014 delete it instead.", true);
+
+  const { error } = await sb.rpc("edit_log", { p_id: id, p_body: body });
+  if(error) return say(humanError(error), true);
+  await loadAll();
 }
 
 async function delLog(id){
@@ -1426,7 +1461,8 @@ Object.assign(window, { signIn, signOut, pick, backToQueue, setTab,
   setStatus, addBlock, logTime, loadThread, postMsg, editMsg, saveMsg,
   openReply, addLog, toggleAdd, startRename, saveRename,
   delBlock, delEntry, delLog, tabTheirView, fitFrame,
-  toggleUsers, delUser, toggleAccount, delAccount });
+  toggleUsers, delUser, toggleAccount, delAccount,
+  editLog, saveLog });
 
 $("find").oninput = e => { filter = e.target.value; renderRail(); };
 boot();
