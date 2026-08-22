@@ -302,6 +302,19 @@
 
   .forgot{display:block;margin-top:13px}
   .gate .msgbox{margin-top:16px}
+
+  /* a class with display: set otherwise beats the hidden attribute */
+  [hidden]{display:none !important}
+
+  /* forgot password */
+  .forgot{display:block;margin-top:13px;background:none;border:0;padding:2px 0;
+    font:inherit;font-size:13.5px;font-weight:600;color:#c2570a;cursor:pointer;
+    text-decoration:underline;text-underline-offset:3px}
+  .forgot:hover{color:#a94a06}
+  #forgotBox{border-top:1px solid var(--line);margin-top:18px;padding-top:18px}
+  #forgotBox h3{margin:0 0 5px;font-size:17px;font-weight:700;color:var(--navy)}
+  #forgotBox p{margin:0 0 15px;font-size:13.5px;color:#5d6874}
+  #forgotBox .btn{width:100%}
 </style>
 </head>
 <body>
@@ -435,7 +448,20 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
       </div>
     </div>
     <button class="btn" id="gateBtn" onclick="signIn()">Sign in</button>
-    <button class="linkbtn tiny forgot" onclick="forgotPassword()">Forgot password?</button>
+    <button class="forgot" onclick="openForgot()">Forgot password?</button>
+
+    <div id="forgotBox" hidden>
+      <h3>Reset your password</h3>
+      <p>We'll email you a link. It's good for one hour.</p>
+      <div class="field">
+        <label for="fem">Work email</label>
+        <input id="fem" type="email" autocomplete="email"
+               placeholder="you@yourcompany.com"
+               onkeydown="if(event.key==='Enter')sendReset()">
+      </div>
+      <button class="btn" id="fBtn" onclick="sendReset()">Send reset link</button>
+      <button class="forgot" onclick="closeForgot()">Back to sign in</button>
+    </div>
     <p class="note">
       Personal email addresses aren't accepted &mdash; use your company address.
       If your company isn't set up yet, contact
@@ -669,28 +695,52 @@ async function signIn(){
    second form to fill in. Supabase sends the link; the person
    lands back here with a recovery session and sets a new one.
    ============================================================ */
-async function forgotPassword(){
-  const email = $("em").value.trim().toLowerCase();
+function openForgot(){
+  // carry over whatever they already typed
+  $("fem").value = $("em").value.trim();
+  $("gateErr").innerHTML = "";
+  $("gate").querySelectorAll(":scope > .field, #gateBtn, :scope > .note")
+    .forEach(el => el.hidden = true);
+  document.querySelectorAll(".forgot")[0].hidden = true;
+  $("forgotBox").hidden = false;
+  $("fem").focus();
+}
+
+function closeForgot(){
+  $("forgotBox").hidden = true;
+  $("gate").querySelectorAll(":scope > .field, #gateBtn, :scope > .note")
+    .forEach(el => el.hidden = false);
+  document.querySelectorAll(".forgot")[0].hidden = false;
+  $("em").focus();
+}
+
+async function sendReset(){
+  const email = $("fem").value.trim().toLowerCase();
   $("gateErr").innerHTML = "";
 
-  if(!email) {
-    $("em").focus();
+  if(!email){
+    $("fem").focus();
     return gateErr("Enter your email address first.");
   }
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
     return gateErr("Enter a valid email address.");
 
+  const btn = $("fBtn"); btn.disabled = true; btn.textContent = "Sending\u2026";
   try{
     const { error } = await sb.auth.resetPasswordForEmail(email, {
       redirectTo: location.origin + location.pathname
     });
     if(error) throw error;
 
+    $("em").value = email;
+    closeForgot();
     // deliberately vague: don't confirm whether an account exists
     gateOk("If there's an account for <b>"+esc(email)+"</b>, a reset link is on "+
            "its way. It's good for one hour.");
   }catch(e){
     gateErr(humanError(e));
+  }finally{
+    btn.disabled = false; btn.textContent = "Send reset link";
   }
 }
 
@@ -699,7 +749,9 @@ async function forgotPassword(){
 function showNewPassword(){
   $("gate").hidden = false;
   $("gateErr").innerHTML = "";
-  $("gate").querySelectorAll(".field, #gateBtn, .forgot, .note").forEach(el => el.hidden = true);
+  $("gate").querySelectorAll(":scope > .field, #gateBtn, .forgot, :scope > .note, #forgotBox")
+    .forEach(el => el.hidden = true);
+  $("who").hidden = true;   // nothing to sign out of yet
   $("gate").querySelector("h2").textContent = "Set a new password";
   $("gate").querySelector("p").innerHTML =
     "Choose a new password for your account. At least 6 characters.";
@@ -725,6 +777,15 @@ async function setNewPassword(){
 
   const btn = $("npBtn"); btn.disabled = true; btn.textContent = "Saving\u2026";
   try{
+    // Supabase reads the token out of the URL asynchronously, so a fast
+    // typist can arrive here before the session exists. Give it a moment.
+    let session = null;
+    for(let i = 0; i < 20 && !session; i++){
+      ({ data:{ session } } = await sb.auth.getSession());
+      if(!session) await new Promise(r => setTimeout(r, 150));
+    }
+    if(!session) throw new Error("That reset link has expired. Request a new one.");
+
     const { error } = await sb.auth.updateUser({ password: pw });
     if(error) throw error;
     location.replace(location.pathname);   // straight in with the new password
@@ -1295,25 +1356,28 @@ function lockDown(){
 Object.assign(window, { signIn, signOut, addRow, rmRow, setF, submitReq,
   claimSite, loadThread, postMsg, editMsg, saveMsg, openReply,
   openProfile, closeProfile, saveProfile,
-  forgotPassword, setNewPassword });
+  openForgot, closeForgot, sendReset, setNewPassword });
 
 /* ---------- go ---------- */
 render();
 
-// a recovery link puts type=recovery in the URL hash
-if(/[#&]type=recovery/.test(location.hash)){
-  sb.auth.onAuthStateChange((evt) => {
-    if(evt === "PASSWORD_RECOVERY" || evt === "SIGNED_IN") showNewPassword();
-  });
-  setTimeout(showNewPassword, 1200);   // in case the event already fired
+/* A reset link arrives with type=recovery in the URL hash, but
+   Supabase strips the hash as soon as it reads the token — so the
+   URL can't be trusted a moment later. Latch it once instead. */
+const RECOVERING = /[#&]type=recovery/.test(location.hash);
+
+if(RECOVERING){
+  showNewPassword();
 }else{
   boot();
 }
 
 // clicking the emailed link lands back here with a token in the URL
 sb.auth.onAuthStateChange((evt) => {
-  if(evt === "PASSWORD_RECOVERY") return;
-  if(evt === "SIGNED_IN" && !me && !/[#&]type=recovery/.test(location.hash)) boot();
+  // during a reset, ignore the sign-in Supabase performs to let them
+  // set a new password — otherwise the portal loads over the top
+  if(RECOVERING) return;
+  if(evt === "SIGNED_IN" && !me) boot();
 });
 
 </script>
