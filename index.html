@@ -1053,9 +1053,15 @@ async function submitReq(){
 /* ============================================================
    My history — RLS returns only my company's rows
    ============================================================ */
+/* A customer's own queries are scoped by the database — they can
+   only ever read their own account. In preview the viewer is AIM
+   staff, who can read everything, so the account has to be pinned
+   explicitly or the frame shows the whole customer base. */
+const scope = q => PREVIEW ? q.eq("org_id", PREVIEW) : q;
+
 async function loadMine(){
-  const { data, error } = await sb.from("requests")
-    .select("id, ref, status, created_at, profiles(full_name), orgs(name), request_lines(item,kind,qty,serial)")
+  const { data, error } = await scope(sb.from("requests")
+    .select("id, ref, status, created_at, org_id, po_number, profiles(full_name), orgs(name), request_lines(item,kind,qty,serial)"))
     .order("created_at", { ascending:false });
 
   if(error){ $("mgFeed").innerHTML = '<div class="err">'+esc(humanError(error))+'</div>'; return; }
@@ -1094,8 +1100,8 @@ let mlogs = [];
 async function loadMessages(){
   if(!me.org_id){ $("msgPanel").hidden = true; return; }
 
-  const { data, error } = await sb.from("account_log")
-    .select("id, body, internal, from_aim, author, created_at")
+  const { data, error } = await scope(sb.from("account_log")
+    .select("id, body, internal, from_aim, author, created_at, org_id"))
     .order("created_at", { ascending:false });
 
   if(error){
@@ -1175,8 +1181,8 @@ const hrs = n => {
 
 async function loadSupport(){
   const [b, e] = await Promise.all([
-    sb.from("block_balances").select("*").order("purchased_at",{ascending:false}),
-    sb.from("support_entries").select("*").order("performed_at",{ascending:false})
+    scope(sb.from("block_balances").select("*")).order("purchased_at",{ascending:false}),
+    scope(sb.from("support_entries").select("*")).order("performed_at",{ascending:false})
   ]);
   blocks  = b.data || [];
   entries = e.data || [];
