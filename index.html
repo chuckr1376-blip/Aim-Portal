@@ -315,6 +315,13 @@
   #forgotBox h3{margin:0 0 5px;font-size:17px;font-weight:700;color:var(--navy)}
   #forgotBox p{margin:0 0 15px;font-size:13.5px;color:#5d6874}
   #forgotBox .btn{width:100%}
+
+  /* beta */
+  .beta{background:#c2570a;color:#fff;border:0;border-radius:4px;
+    padding:2px 8px;margin-left:11px;font:inherit;font-size:11px;font-weight:700;
+    letter-spacing:.09em;cursor:pointer;vertical-align:middle}
+  .beta:hover{background:#a94a06}
+  #betaPanel{border-left:3px solid #c2570a}
 </style>
 </head>
 <body>
@@ -406,7 +413,7 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
 
 <div class="bar">
   <div class="bar-in">
-    <h1>Client Portal</h1>
+    <h1>Client Portal <button class="beta" onclick="openBeta()" hidden>BETA</button></h1>
     <div class="who" id="who" hidden>
       <div class="who-org"><b id="whoOrg"></b></div>
       <button class="linkbtn" onclick="signOut()">Sign out</button>
@@ -548,6 +555,28 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
 
   </div>
 
+  <section class="panel" id="betaPanel" hidden>
+    <div class="panel-head">
+      <h3>This portal is new</h3>
+      <button class="linkbtn tiny" style="margin-left:auto"
+              onclick="closeBeta()">Close</button>
+    </div>
+    <div class="panel-body">
+      <p class="bankcopy">We built this recently and we're still adding to it.
+        If something's missing, or doesn't work the way you'd expect, tell us here
+        &mdash; what customers ask for is what gets built next.</p>
+      <div class="msgbox">
+        <label for="fbBody">What's missing, or what went wrong?</label>
+        <textarea id="fbBody" rows="3"></textarea>
+        <div class="msgfoot">
+          <span class="hint">Goes straight to AIM. No email needed.</span>
+          <button class="btn" id="fbBtn" onclick="sendFeedback()">Send</button>
+        </div>
+        <div id="fbErr"></div>
+      </div>
+    </div>
+  </section>
+
   <div id="profileBox" hidden>
     <button class="linkbtn tiny" id="profOpen" onclick="openProfile()">Update my phone number</button>
     <div id="profForm" hidden>
@@ -622,8 +651,15 @@ function humanError(e){
     return "That email domain isn't set up with us yet. Contact agvparts@weareaim.com to request access.";
   if (m.includes("invalid login credentials"))
     return "Wrong email or password.";
-  if (m.includes("password should be") || m.includes("weak password"))
-    return "Password must be at least 6 characters.";
+  // Supabase words several different complaints as "password should be…",
+  // so check the specific ones before falling back to length
+  if (m.includes("different from the old") || m.includes("should be different")
+      || m.includes("same password"))
+    return "Reset cannot use the same password.";
+  if (m.includes("at least") && m.includes("character"))
+    return e.message;                       // it already names the real minimum
+  if (m.includes("weak password") || m.includes("password should be"))
+    return "That password isn't accepted. Try a longer one.";
   if (m.includes("user already registered"))
     return "That email already has an account \u2014 check the password.";
   if (m.includes("email not confirmed"))
@@ -884,6 +920,7 @@ async function boot(){
 
   $("who").hidden = false;
   $("profileBox").hidden = false;
+  document.querySelector(".beta").hidden = false;
 
   if(!me.org_id){
     // domain serves several sites; make them choose before anything else
@@ -1314,6 +1351,46 @@ async function refreshAfterMessage(reqId){
   await loadMine();
 }
 
+/* ============================================================
+   Beta feedback
+
+   Files into the database rather than sending mail, so nothing
+   gets lost in an inbox. Needs a session, because the row records
+   who sent it — so the box only appears once signed in.
+   ============================================================ */
+function openBeta(){
+  $("betaPanel").hidden = false;
+  $("betaPanel").scrollIntoView({behavior:"smooth", block:"start"});
+  $("fbBody").focus();
+}
+function closeBeta(){
+  $("betaPanel").hidden = true;
+  $("fbErr").innerHTML = "";
+}
+
+async function sendFeedback(){
+  const body = $("fbBody").value.trim();
+  const fail = m => $("fbErr").innerHTML = '<div class="err">'+esc(m)+'</div>';
+  $("fbErr").innerHTML = "";
+
+  if(!body) return fail("Tell us what's missing first.");
+
+  const btn = $("fbBtn"); btn.disabled = true; btn.textContent = "Sending\u2026";
+  try{
+    // author, account and email are stamped by the database
+    const { error } = await sb.from("feedback").insert({ body, page: "portal" });
+    if(error) throw error;
+
+    $("fbBody").value = "";
+    $("fbErr").innerHTML =
+      '<div class="toast">Thanks \u2014 that\'s with AIM now.</div>';
+  }catch(e){
+    fail(humanError(e));
+  }finally{
+    btn.disabled = false; btn.textContent = "Send";
+  }
+}
+
 /* ---------- my details ---------- */
 function openProfile(){
   $("pcc").value = me.phone_cc || "1";
@@ -1356,6 +1433,7 @@ function lockDown(){
 Object.assign(window, { signIn, signOut, addRow, rmRow, setF, submitReq,
   claimSite, loadThread, postMsg, editMsg, saveMsg, openReply,
   openProfile, closeProfile, saveProfile,
+  openBeta, closeBeta, sendFeedback,
   openForgot, closeForgot, sendReset, setNewPassword });
 
 /* ---------- go ---------- */

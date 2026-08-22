@@ -420,6 +420,20 @@ tr:last-child td{border-bottom:0}
   border-radius:7px;font:inherit;font-size:14px;resize:vertical;background:#fff}
 .editrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px}
 .editrow .sm{color:var(--steel)}
+
+/* beta feedback */
+.fbbtn .fbcount{background:var(--orange);color:#fff;border-radius:20px;
+  padding:1px 8px;font-size:11px;font-weight:700;letter-spacing:0}
+.fbbtn .fbcount:empty{display:none}
+.fbbtn.has{border-color:var(--orange)}
+.fb{border:1px solid var(--line);border-left:3px solid var(--orange);
+  border-radius:0 9px 9px 0;padding:12px 15px;margin-bottom:12px;background:#fff}
+.fb.done{border-left-color:var(--line);opacity:.65}
+.fb-h{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.fb-h b{color:var(--navy);font-size:14.5px}
+.fb-b{font-size:14px;color:#16233a;white-space:pre-wrap;margin-bottom:9px}
+.fb-f{display:flex;gap:9px;align-items:center}
+.fb-f .rm{margin-left:auto}
 </style>
 </head>
 <body>
@@ -553,6 +567,10 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
       Active users <span class="car">&rsaquo;</span>
     </button>
 
+    <button class="usersbtn fbbtn" onclick="toggleFeedback()">
+      Beta feedback <span class="fbcount"></span> <span class="car">&rsaquo;</span>
+    </button>
+
     <div class="pane addpanel" id="addPanel" hidden>
       <div class="pane-b">
         <div id="acMsg"></div>
@@ -626,8 +644,8 @@ function humanError(e){
 }
 
 let me = null, orgs = [], domains = [], users = [], authed = [],
-    reqs = [], blocks = [], entries = [], logs = [];
-let sel = null, tab = "requests", filter = "", showingUsers = false;
+    reqs = [], blocks = [], entries = [], logs = [], notes = [];
+let sel = null, tab = "requests", filter = "", showingUsers = false, showingFb = false;
 
 /* ============================================================
    Sign in
@@ -681,7 +699,7 @@ async function boot(){
 }
 
 async function loadAll(){
-  const [o,d,u,a,r,b,e,g] = await Promise.all([
+  const [o,d,u,a,r,b,e,g,fb] = await Promise.all([
     sb.from("orgs").select("id, name, active").order("name"),
     sb.from("org_domains").select("domain, org_id"),
     sb.rpc("list_users"),
@@ -689,16 +707,26 @@ async function loadAll(){
     sb.from("requests").select("id, ref, status, created_at, org_id, po_number, profiles(full_name), request_lines(item,kind,qty,serial)").order("created_at",{ascending:false}),
     sb.from("block_balances").select("*").order("purchased_at",{ascending:false}),
     sb.from("support_entries").select("*").order("performed_at",{ascending:false}),
-    sb.from("account_log").select("*").order("created_at",{ascending:false})
+    sb.from("account_log").select("*").order("created_at",{ascending:false}),
+    sb.from("feedback").select("*").order("created_at",{ascending:false})
   ]);
 
   orgs    = (o.data||[]).filter(x => x.name !== "America In Motion (internal)");
   domains = d.data || []; users = u.data || []; authed = a.data || [];
   reqs    = r.data || []; blocks = b.data || []; entries = e.data || [];
   logs    = g.data || [];
+  notes   = fb.data || [];
 
   renderTicks(); renderRail();
-  showingUsers ? renderAllUsers() : (sel ? renderAccount() : renderQueue());
+  const unread = notes.filter(n => !n.handled).length;
+  const fbBtn = document.querySelector(".fbbtn");
+  if(fbBtn){
+    fbBtn.querySelector(".fbcount").textContent = unread ? unread : "";
+    fbBtn.classList.toggle("has", unread > 0);
+  }
+  showingFb    ? renderFeedback()
+    : showingUsers ? renderAllUsers()
+    : (sel ? renderAccount() : renderQueue());
 }
 
 function renderTicks(){
@@ -753,9 +781,69 @@ function renderRail(){
 /* ============================================================
    Everyone with a login, across every account
    ============================================================ */
+/* ============================================================
+   Beta feedback from customers
+   ============================================================ */
+function toggleFeedback(){
+  showingFb = !showingFb;
+  if(showingFb){ sel = null; showingUsers = false; renderRail(); renderFeedback(); }
+  else renderQueue();
+  document.querySelector(".fbbtn")?.classList.toggle("on", showingFb);
+  document.querySelector(".usersbtn")?.classList.remove("on");
+}
+
+function renderFeedback(){
+  const open = notes.filter(n => !n.handled);
+  const done = notes.filter(n =>  n.handled);
+
+  const card = n => `<div class="fb ${n.handled ? "done" : ""}">
+    <div class="fb-h">
+      <b>${esc(n.author || "\u2014")}</b>
+      <span class="sm">${esc(n.email || "")}</span>
+      ${n.org_id ? `<button class="btn ghost sm" onclick="pick('${esc(n.org_id)}')">${
+        esc(orgs.find(o => o.id === n.org_id)?.name || "account")}</button>` : ""}
+      <span class="sm" style="margin-left:auto">${fmt(n.created_at)}</span>
+    </div>
+    <div class="fb-b">${esc(n.body)}</div>
+    <div class="fb-f">
+      <button class="btn ghost sm" onclick="markFeedback(${n.id},${!n.handled})">${
+        n.handled ? "Reopen" : "Mark done"}</button>
+      <button class="rm" title="Delete" onclick="delFeedback(${n.id})">&times;</button>
+    </div>
+  </div>`;
+
+  $("detail").dataset.empty = "0";
+  $("detail").innerHTML = `
+    <div class="pane-h">
+      <h2>Beta feedback</h2>
+      <span class="sm">${open.length} open \u00b7 ${done.length} done</span>
+      <div class="act"><button class="btn ghost sm" onclick="toggleFeedback()">Back to queue</button></div>
+    </div>
+    <div class="pane-b">
+      <div id="msg"></div>
+      ${open.length ? open.map(card).join("")
+        : '<div class="empty">Nothing new. Customers send this from the BETA tag on their portal.</div>'}
+      ${done.length ? '<div class="sub-h">Dealt with</div>' + done.map(card).join("") : ""}
+    </div>`;
+}
+
+async function markFeedback(id, handled){
+  const { error } = await sb.rpc("set_feedback_handled",
+    { p_id: id, p_handled: handled });
+  if(error) return say(humanError(error), true);
+  await loadAll();
+}
+
+async function delFeedback(id){
+  if(!confirm("Delete this feedback? This can't be undone.")) return;
+  const { error } = await sb.rpc("delete_feedback", { p_id: id });
+  if(error) return say(humanError(error), true);
+  await loadAll();
+}
+
 function toggleUsers(){
   showingUsers = !showingUsers;
-  if(showingUsers){ sel = null; renderRail(); renderAllUsers(); }
+  if(showingUsers){ sel = null; showingFb = false; renderRail(); renderAllUsers(); }
   else renderQueue();
   document.querySelector(".usersbtn")?.classList.toggle("on", showingUsers);
 }
@@ -817,7 +905,7 @@ async function delUser(id, email){
 }
 
 function pick(id){
-  showingUsers = false;
+  showingUsers = false; showingFb = false;
   const same = (sel === id);
   sel = id;
   if(!same) tab = "requests";
@@ -1462,7 +1550,7 @@ Object.assign(window, { signIn, signOut, pick, backToQueue, setTab,
   openReply, addLog, toggleAdd, startRename, saveRename,
   delBlock, delEntry, delLog, tabTheirView, fitFrame,
   toggleUsers, delUser, toggleAccount, delAccount,
-  editLog, saveLog });
+  editLog, saveLog, toggleFeedback, markFeedback, delFeedback });
 
 $("find").oninput = e => { filter = e.target.value; renderRail(); };
 boot();
