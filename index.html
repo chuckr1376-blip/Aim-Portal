@@ -272,7 +272,7 @@
 
   /* framed inside admin: no page chrome, nothing interactive */
   body.preview{background:#fff}
-  body.preview .banner,body.preview .bar{display:none}
+  body.preview .banner{display:none}   /* the wordmark is already above the frame */
   body.preview main{padding:0;max-width:none}
   body.preview .acctname{margin-top:0}
   body.preview input,body.preview select,body.preview textarea{
@@ -907,8 +907,15 @@ async function boot(){
   $("gate").hidden = true;
 
   if(PREVIEW){
+    // show what the customer sees, including the bar and the BETA tag
     document.body.classList.add("preview");
-    $("who").hidden = true;
+    $("who").hidden = false;
+    $("whoOrg").textContent = "\u2014";
+    if(me.org_name){
+      $("acctName").textContent = me.org_name;
+      $("acctName").hidden = false;
+    }
+    document.querySelector(".beta").hidden = false;
     $("portal").hidden = false;
     if(!rows.length) addRow();      // the customer sees one blank line
     await loadMine();
