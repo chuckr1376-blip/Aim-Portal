@@ -220,6 +220,9 @@
   .msg-h b{color:var(--navy);font-size:12.5px}
   .msg.from-aim .msg-h,.msg.from-aim .msg-h b{color:#8a4f0d}
   .msg.from-aim .msg-b{color:#3d2408}
+  .msg-org{font-weight:600;font-size:10.5px;letter-spacing:.4px;
+    margin-left:6px;padding:1px 5px;border-radius:3px;
+    background:rgba(138,79,13,.12);color:#8a4f0d}
   .msg-b{color:#22303c;white-space:pre-wrap}
   .msg-empty{font-size:13px;color:#8b95a1;padding:4px 0 8px}
   .chip{background:#fff;border:1px solid var(--line);border-radius:20px;
@@ -334,6 +337,17 @@
   .barmid .lines{display:flex;flex-direction:column;gap:1px;font-size:12px;
     color:#c3d2e6;white-space:nowrap;line-height:1.35}
   .barmid .lines b{color:#fff;font-weight:600;margin-right:5px}
+  /* iOS repaints tel: links with its own blue and wins on specificity,
+     which on the navy bar renders them invisible. */
+  .barmid .lines a,
+  .barmid .lines a:link,
+  .barmid .lines a:visited,
+  .barmid .lines a:active{color:#c3d2e6 !important;text-decoration:none}
+  .barmid .lines a:hover{color:#fff !important;text-decoration:underline}
+  .bankcopy a[href^="tel:"],
+  .bankcopy a[href^="tel:"]:link,
+  .bankcopy a[href^="tel:"]:visited{color:inherit !important;text-decoration:none}
+  .bankcopy a[href^="tel:"]:hover{text-decoration:underline}
   @media (max-width:860px){
     .bar-in{flex-wrap:wrap}
     .barmid{order:3;width:100%;margin:9px 0 0;padding:9px 0 0;
@@ -440,8 +454,8 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
 
     <div class="barmid">
       <div class="lines">
-        <span><b>Service</b> (704) 850-9200</span>
-        <span><b>Parts</b> (704) 850-9310</span>
+        <span><b>Service</b> <a href="tel:+17048509200">(704) 850-9200</a></span>
+        <span><b>Parts</b> <a href="tel:+17048509310">(704) 850-9310</a></span>
       </div>
     </div>
 
@@ -567,7 +581,7 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
           <b>Bank of Hours</b>, billed at <b>$195/hr</b> in quarter-hour increments.
           The minimum is <b>5 hours &mdash; $975</b>, paid 100% up front.</p>
         <p class="bankcopy">Send a PO to <b>agvservice@weareaim.com</b> or call
-          <b>(704) 850-9200</b>. Your Bank appears on this page as soon as the PO is
+          <b><a href="tel:+17048509200">(704) 850-9200</a></b>. Your Bank appears on this page as soon as the PO is
           received, and the balance updates every time an AIM technician logs time.</p>
         <p class="bankcopy sm">Support is worked 9AM&ndash;5PM Eastern, Monday to Friday.</p>
       </div>
@@ -1032,8 +1046,8 @@ async function submitReq(){
     const parts   = lines.some(l => ["Spare part","RMA / return"].includes(l.type));
     const service = lines.some(l => !["Spare part","RMA / return"].includes(l.type));
     const numbers = [
-      service ? "the service line on <b>(704) 850-9200</b>" : null,
-      parts   ? "the parts line on <b>(704) 850-9310</b>"   : null
+      service ? "the service line on <b><a href=\'tel:+17048509200\'>(704) 850-9200</a></b>" : null,
+      parts   ? "the parts line on <b><a href=\'tel:+17048509310\'>(704) 850-9310</a></b>"   : null
     ].filter(Boolean).join(" or ");
 
     rows = []; addRow();
@@ -1323,7 +1337,8 @@ function threadHtml(reqId, msgs){
       ${msgs.map(m=>`
         <div class="msg ${m.from_staff?"from-aim":"from-client"}">
           <div class="msg-h">
-            <b>${m.from_staff?"AIM":"You"}</b>
+            <b>${esc(m.author_name || (m.from_staff?"AIM":"You"))}${
+              m.from_staff?'<span class="msg-org">AIM</span>':""}</b>
             <span>${fmt(m.created_at)}${m.edited_at?" \u00b7 edited":""}</span>
             ${m.hours?'<span class="chip">'+m.hours+' hrs</span>':""}
             ${m.po_number?'<span class="chip">PO '+esc(m.po_number)+'</span>':""}

@@ -231,6 +231,8 @@ tr:last-child td{border-bottom:0}
   font-weight:700;letter-spacing:-.02em;color:var(--navy)}
 .gate p{margin:0 0 20px;font-size:14px;color:var(--steel)}
 .gate .f{margin-bottom:14px}
+.msg-org{font-weight:600;font-size:11px;letter-spacing:.4px;color:var(--steel);
+  margin-left:6px;padding:1px 5px;border-radius:3px;background:#eef1f6}
 
 /* requester line under the request header */
 .wo-who{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;
@@ -1543,7 +1545,8 @@ function threadHtml(reqId, msgs){
       ${msgs.map(m=>`
         <div class="msg ${m.from_staff?"from-aim":"from-client"}">
           <div class="msg-h">
-            <b>${m.from_staff?"AIM":"You"}</b>
+            <b>${esc(m.author_name || (m.from_staff?"AIM":"You"))}${
+              m.from_staff?'<span class="msg-org">AIM</span>':""}</b>
             <span>${fmt(m.created_at)}${m.edited_at?" \u00b7 edited":""}</span>
             ${m.hours?'<span class="chip">'+m.hours+' hrs</span>':""}
             ${m.po_number?'<span class="chip">PO '+esc(m.po_number)+'</span>':""}
