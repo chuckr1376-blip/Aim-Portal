@@ -231,6 +231,12 @@ tr:last-child td{border-bottom:0}
   font-weight:700;letter-spacing:-.02em;color:var(--navy)}
 .gate p{margin:0 0 20px;font-size:14px;color:var(--steel)}
 .gate .f{margin-bottom:14px}
+.pw-wrap{position:relative}
+.pw-wrap input{width:100%;padding-right:64px}
+.pw-eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  background:none;border:0;padding:4px 6px;cursor:pointer;
+  font:inherit;font-size:12px;font-weight:600;color:var(--steel)}
+.pw-eye:hover{text-decoration:underline}
 .gate .btn{width:100%;justify-content:center}
 
 /* ---------- responsive ---------- */
@@ -540,8 +546,7 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
 
 <section class="gate" id="gate" hidden>
   <h2>AIM staff</h2>
-  <p>Your weareaim.com address and password. First time here? Enter your
-     address and pick a password &mdash; that creates your login.</p>
+  <p>Your weareaim.com address and password.</p>
   <div id="gateMsg"></div>
   <div class="f">
     <label for="em">Email</label>
@@ -549,10 +554,18 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
   </div>
   <div class="f">
     <label for="pw">Password</label>
-    <input id="pw" type="password" autocomplete="current-password"
-           onkeydown="if(event.key==='Enter')signIn()">
+    <div class="pw-wrap">
+      <input id="pw" type="password" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter')signIn()">
+      <button type="button" class="pw-eye" id="pwEye"
+              onclick="togglePw()" aria-label="Show password">Show</button>
+    </div>
   </div>
   <button class="btn" id="gateBtn" onclick="signIn()">Sign in</button>
+  <p class="note">
+    <a href="#" onclick="sendReset();return false;">Forgot password?</a>
+    &nbsp;&middot;&nbsp; Never set one? Use that too &mdash; it emails you a link.
+  </p>
   <p class="note">Customers sign in on the client portal, not here.</p>
 </section>
 
@@ -639,7 +652,6 @@ function humanError(e){
   if(m.includes("password should be"))         return "Passwords need at least 6 characters.";
   if(m.includes("already registered"))         return "That email already has a login. Try the password.";
   if(m.includes("only") && m.includes("remain")) return e.message;   // block overdraft, already plain
-  if(m.includes("password should be"))         return "Pick a password of at least 6 characters.";
   if(m.includes("failed to fetch"))            return "Can't reach the database. Check config.js has the right project URL.";
   return e?.message || "That didn't work.";
 }
@@ -664,24 +676,41 @@ async function signIn(){
 
   const btn = $("gateBtn"); btn.disabled = true; btn.textContent = "Signing in…";
   try{
-    let { error } = await sb.auth.signInWithPassword({ email, password: pw });
-
-    // No account yet: make one. The database allowlist still decides
-    // whether the address is allowed, so this isn't an open door.
-    if(error && /invalid login credentials/i.test(error.message)){
-      const up = await sb.auth.signUp({ email, password: pw });
-      if(up.error) throw up.error;
-      if(!up.data.session){
-        box.innerHTML = '<div class="note">Account created. Check your email to '
-                      + 'confirm, then sign in.</div>';
-        return;
-      }
-    }else if(error){ throw error; }
-
+    const { error } = await sb.auth.signInWithPassword({ email, password: pw });
+    if(error) throw error;
     location.reload();
   }catch(e){ fail(humanError(e)); }
   finally{ btn.disabled = false; btn.textContent = "Sign in"; }
 }
+function togglePw(){
+  const f = $("pw"), b = $("pwEye");
+  const showing = f.type === "text";
+  f.type = showing ? "password" : "text";
+  b.textContent = showing ? "Show" : "Hide";
+  b.setAttribute("aria-label", showing ? "Show password" : "Hide password");
+  f.focus();
+}
+
+// Covers both cases: forgot it, and never had one. Supabase sends a
+// link either way, and the link lets you set a password.
+async function sendReset(){
+  const email = $("em").value.trim().toLowerCase();
+  const box   = $("gateMsg");
+  if(!email.endsWith("@weareaim.com"))
+    return box.innerHTML = '<div class="err">Enter your weareaim.com address first.</div>';
+  box.innerHTML = '<div class="note">Sending\u2026</div>';
+  try{
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: location.origin + "/reset.html"
+    });
+    if(error) throw error;
+    box.innerHTML = '<div class="note">Check ' + esc(email) +
+                    ' for a link to set your password.</div>';
+  }catch(e){
+    box.innerHTML = '<div class="err">' + esc(humanError(e)) + '</div>';
+  }
+}
+
 async function signOut(){ await sb.auth.signOut(); location.reload(); }
 
 /* ============================================================
@@ -1557,7 +1586,7 @@ async function saveMsg(id, reqId){
 
 async function refreshAfterMessage(reqId){ await loadAll(); }
 
-Object.assign(window, { signIn, signOut, pick, backToQueue, setTab,
+Object.assign(window, { signIn, signOut, togglePw, sendReset, pick, backToQueue, setTab,
   createAccount, addDomain, rmDomain, authorize, revoke, toggleActive,
   setStatus, addBlock, logTime, loadThread, postMsg, editMsg, saveMsg,
   openReply, addLog, toggleAdd, startRename, saveRename,
