@@ -231,6 +231,19 @@ tr:last-child td{border-bottom:0}
   font-weight:700;letter-spacing:-.02em;color:var(--navy)}
 .gate p{margin:0 0 20px;font-size:14px;color:var(--steel)}
 .gate .f{margin-bottom:14px}
+
+/* requester line under the request header */
+.wo-who{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;
+  padding:0 0 8px;margin:-2px 0 0}
+.who-name{font-weight:700;color:var(--ink)}
+.who-contact{font-size:13px;color:var(--steel)}
+.who-sep{margin:0 6px;color:var(--steel)}
+
+/* iOS restyles tel: links with its own colour and wins on specificity */
+.who-contact a,
+.who-contact a:visited,
+.who-contact a:active{color:var(--steel) !important;text-decoration:none}
+.who-contact a:hover{text-decoration:underline}
 .pw-wrap{position:relative}
 .pw-wrap input{width:100%;padding-right:64px}
 .pw-eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);
@@ -746,7 +759,7 @@ async function loadAll(){
     sb.from("org_domains").select("domain, org_id"),
     sb.rpc("list_users"),
     sb.rpc("list_authorized"),
-    sb.from("requests").select("id, ref, status, created_at, org_id, po_number, profiles(full_name), request_lines(item,kind,qty,serial)").order("created_at",{ascending:false}),
+    sb.from("requests").select("id, ref, status, created_at, org_id, po_number, created_by, profiles(full_name), request_lines(item,kind,qty,serial)").order("created_at",{ascending:false}),
     sb.from("block_balances").select("*").order("purchased_at",{ascending:false}),
     sb.from("support_entries").select("*").order("performed_at",{ascending:false}),
     sb.from("account_log").select("*").order("created_at",{ascending:false}),
@@ -1209,6 +1222,23 @@ function tabPeople(us){
   </table>`;
 }
 
+// Requester line: who filed it, and how to reach them without
+// leaving the request. list_users already carries email and phone.
+function whoHtml(r){
+  const u = users.find(x => x.id === r.created_by);
+  const name = r.profiles?.full_name || u?.full_name || "";
+  if(!name && !u) return "";
+
+  const bits = [];
+  if(u?.phone) bits.push(`<a href="tel:${esc(String(u.phone).replace(/[^\d+]/g,""))}">${esc(u.phone)}</a>`);
+  if(u?.email) bits.push(`<a href="mailto:${esc(u.email)}">${esc(u.email)}</a>`);
+
+  return `<div class="wo-who">
+    <span class="who-name">${esc(name || "\u2014")}</span>
+    ${bits.length ? `<span class="who-contact">${bits.join('<span class="who-sep">\u00b7</span>')}</span>` : ""}
+  </div>`;
+}
+
 function woHtml(r, showOrg){
   const o = orgs.find(x => x.id === r.org_id);
   return `<div class="wo">
@@ -1219,8 +1249,9 @@ function woHtml(r, showOrg){
       <select class="sel" onchange="setStatus(${r.id}, this.value)">
         ${STATUSES.map(s => `<option${s===r.status?" selected":""}>${s}</option>`).join("")}
       </select>
-      <span class="when">${fmt(r.created_at)} · ${esc(r.profiles?.full_name || "")}</span>
+      <span class="when">${fmt(r.created_at)}</span>
     </div>
+    ${whoHtml(r)}
     <div class="wo-b">
       <ul class="lines">${(r.request_lines||[]).map(l => `<li>
         <span class="qty">${l.qty}×</span>
