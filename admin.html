@@ -540,8 +540,8 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
 
 <section class="gate" id="gate" hidden>
   <h2>AIM staff</h2>
-  <p>Your weareaim.com address and password. If you don't have a login yet,
-     ask whoever set this up to create one for you.</p>
+  <p>Your weareaim.com address and password. First time here? Enter your
+     address and pick a password &mdash; that creates your login.</p>
   <div id="gateMsg"></div>
   <div class="f">
     <label for="em">Email</label>
@@ -639,6 +639,7 @@ function humanError(e){
   if(m.includes("password should be"))         return "Passwords need at least 6 characters.";
   if(m.includes("already registered"))         return "That email already has a login. Try the password.";
   if(m.includes("only") && m.includes("remain")) return e.message;   // block overdraft, already plain
+  if(m.includes("password should be"))         return "Pick a password of at least 6 characters.";
   if(m.includes("failed to fetch"))            return "Can't reach the database. Check config.js has the right project URL.";
   return e?.message || "That didn't work.";
 }
@@ -663,8 +664,20 @@ async function signIn(){
 
   const btn = $("gateBtn"); btn.disabled = true; btn.textContent = "Signing in…";
   try{
-    const { error } = await sb.auth.signInWithPassword({ email, password: pw });
-    if(error) throw error;
+    let { error } = await sb.auth.signInWithPassword({ email, password: pw });
+
+    // No account yet: make one. The database allowlist still decides
+    // whether the address is allowed, so this isn't an open door.
+    if(error && /invalid login credentials/i.test(error.message)){
+      const up = await sb.auth.signUp({ email, password: pw });
+      if(up.error) throw up.error;
+      if(!up.data.session){
+        box.innerHTML = '<div class="note">Account created. Check your email to '
+                      + 'confirm, then sign in.</div>';
+        return;
+      }
+    }else if(error){ throw error; }
+
     location.reload();
   }catch(e){ fail(humanError(e)); }
   finally{ btn.disabled = false; btn.textContent = "Sign in"; }
