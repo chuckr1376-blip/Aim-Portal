@@ -76,9 +76,46 @@
   main{max-width:1240px;margin:0 auto;padding:28px 24px 70px}
 
   /* ---------- gate ---------- */
-  .gate{max-width:430px;margin:56px auto}
-  .gate h2{font-size:20px;margin:0 0 6px;color:var(--navy)}
-  .gate p{color:var(--slate);font-size:14px;margin:0 0 22px}
+  .gate{max-width:620px;margin:44px auto}
+
+  /* the login card: navy title bar over a white body */
+  .logincard{background:#fff;border:1px solid var(--line);border-radius:2px;
+    overflow:hidden}
+  .logincard-head{background:var(--navy);color:#fff;padding:12px 22px;
+    font-size:14px;font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+  .logincard-body{padding:24px 22px 28px}
+
+  /* sentence-case labels over pale-filled boxes, per the sign-in layout */
+  .lfield{margin-bottom:18px}
+  .lfield label{display:block;font-size:14px;font-weight:400;letter-spacing:0;
+    text-transform:none;color:var(--ink);margin-bottom:7px}
+  .lfield input{background:#e9eefa;border:1px solid #d7dded;border-radius:2px;
+    padding:10px 12px}
+  .lfield input:focus{background:#fff}
+  .lfield > input{max-width:430px}
+  .lfield .phonerow{max-width:430px}
+  .lfield .phonerow .cc{border-radius:2px 0 0 2px;background:#e9eefa}
+  .lfield .phonerow input:last-child{border-radius:0 2px 2px 0}
+  .lintro{font-size:13.5px;color:var(--slate);margin:0 0 18px}
+
+  .lrow{display:flex;align-items:center;gap:28px;flex-wrap:wrap;margin-top:24px}
+  .btn-signin{background:var(--navy);color:#fff;border:0;border-radius:2px;
+    padding:13px 32px;font:inherit;font-size:14px;font-weight:700;
+    letter-spacing:.09em;text-transform:uppercase;cursor:pointer}
+  .btn-signin:hover{background:#12203d}
+  .btn-signin:disabled{background:#c3cad3;cursor:not-allowed}
+  .lrow .forgot{margin-top:0}
+
+  /* first-time user block, sitting under the card */
+  .firsttime{background:#e7eef8;border:1px solid var(--line);border-top:0;
+    padding:26px 22px 30px}
+  .firsttime h3{margin:0 0 11px;font-size:21px;font-weight:700;color:var(--navy)}
+  .firsttime p{margin:0 0 21px;font-size:14px;color:#3f4a57}
+  .btn-outline{background:#fff;border:2px solid var(--navy);color:var(--navy);
+    border-radius:2px;padding:12px 28px;font:inherit;font-size:14px;
+    font-weight:700;letter-spacing:.09em;text-transform:uppercase;cursor:pointer}
+  .btn-outline:hover{background:var(--navy);color:#fff}
+
   .field{margin-bottom:14px}
   label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.07em;
     text-transform:uppercase;color:var(--slate);margin-bottom:5px}
@@ -316,10 +353,8 @@
     font:inherit;font-size:13.5px;font-weight:600;color:#c2570a;cursor:pointer;
     text-decoration:underline;text-underline-offset:3px}
   .forgot:hover{color:#a94a06}
-  #forgotBox{border-top:1px solid var(--line);margin-top:18px;padding-top:18px}
-  #forgotBox h3{margin:0 0 5px;font-size:17px;font-weight:700;color:var(--navy)}
-  #forgotBox p{margin:0 0 15px;font-size:13.5px;color:#5d6874}
-  #forgotBox .btn{width:100%}
+  #forgotBox p{margin:0 0 18px;font-size:13.5px;color:#5d6874}
+  #forgotBox .btn-signin{margin-right:24px}
 
   /* beta */
   .beta{background:#c2570a;color:#fff;border:0;border-radius:4px;
@@ -471,54 +506,74 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
   <h2 class="acctname" id="acctName" hidden></h2>
 
   <section class="gate" id="gate">
-    <h2>Sign in</h2>
-    <p><b>New here?</b> Type your work email and the password you want, then
-       press Sign in &mdash; that creates your account. There's no separate
-       sign-up step and nothing gets emailed to you.<br><br>
-       <b>Been here before?</b> Same two boxes, same password.</p>
-    <div id="gateErr"></div>
-    <div class="field">
-      <label for="em">Work email</label>
-      <input id="em" type="email" autocomplete="email" placeholder="you@yourcompany.com">
-    </div>
-    <div class="field">
-      <label for="pw">Password</label>
-      <input id="pw" type="password" autocomplete="current-password"
-             placeholder="Your password, or pick one now"
-             onkeydown="if(event.key==='Enter')signIn()">
-    </div>
-    <div class="field" id="nameField">
-      <label for="nm">Full name <span style="font-weight:400;text-transform:none">&mdash; first time only</span></label>
-      <input id="nm" type="text" autocomplete="name" placeholder="Your name">
-    </div>
-    <div class="field" id="phoneField">
-      <label for="ph">Phone <span style="font-weight:400;text-transform:none">&mdash; first time only, so we can call you</span></label>
-      <div class="phonerow">
-        <span class="cc">+</span>
-        <input id="cc" class="ccin mono" value="1" inputmode="numeric" maxlength="3">
-        <input id="ph" type="tel" autocomplete="tel" placeholder="704 246 3961">
-      </div>
-    </div>
-    <button class="btn" id="gateBtn" onclick="signIn()">Sign in</button>
-    <button class="forgot" onclick="openForgot()">Forgot password?</button>
 
-    <div id="forgotBox" hidden>
-      <h3>Reset your password</h3>
-      <p>We'll email you a link. It's good for one hour.</p>
-      <div class="field">
-        <label for="fem">Work email</label>
-        <input id="fem" type="email" autocomplete="email"
-               placeholder="you@yourcompany.com"
-               onkeydown="if(event.key==='Enter')sendReset()">
+    <div class="logincard">
+      <div class="logincard-head" id="gateHead">Login</div>
+      <div class="logincard-body">
+
+        <div id="gateErr"></div>
+
+        <div class="lfield" id="fEmail">
+          <label for="em">Email Address:</label>
+          <input id="em" type="email" autocomplete="email"
+                 onkeydown="if(event.key==='Enter')gateGo()">
+        </div>
+
+        <div class="lfield" id="fPw">
+          <label for="pw">Password:</label>
+          <input id="pw" type="password" autocomplete="current-password"
+                 onkeydown="if(event.key==='Enter')gateGo()">
+        </div>
+
+        <!-- shown only when registering -->
+        <div class="lfield" id="nameField" hidden>
+          <label for="nm">Full Name:</label>
+          <input id="nm" type="text" autocomplete="name">
+        </div>
+        <div class="lfield" id="phoneField" hidden>
+          <label for="ph">Phone &mdash; so we can call you back:</label>
+          <div class="phonerow">
+            <span class="cc">+</span>
+            <input id="cc" class="ccin mono" value="1" inputmode="numeric" maxlength="3">
+            <input id="ph" type="tel" autocomplete="tel" placeholder="704 246 3961">
+          </div>
+        </div>
+
+        <div class="lrow" id="gateActions">
+          <button class="btn-signin" id="gateBtn" onclick="gateGo()">Sign In</button>
+          <button class="forgot" id="forgotLink" onclick="openForgot()">Forgot Password?</button>
+          <button class="forgot" id="backLink" hidden onclick="showLogin()">Back to sign in</button>
+        </div>
+
+        <p class="note" id="gateNote" hidden>
+          Personal email addresses aren't accepted &mdash; use your company address.
+          If your company isn't set up yet, contact
+          <b>agvparts@weareaim.com</b>.
+        </p>
+
+        <div id="forgotBox" hidden>
+          <p>We'll email you a link. It's good for one hour.</p>
+          <div class="lfield">
+            <label for="fem">Email Address:</label>
+            <input id="fem" type="email" autocomplete="email"
+                   onkeydown="if(event.key==='Enter')sendReset()">
+          </div>
+          <div class="lrow">
+            <button class="btn-signin" id="fBtn" onclick="sendReset()">Send Reset Link</button>
+            <button class="forgot" onclick="closeForgot()">Back to sign in</button>
+          </div>
+        </div>
+
       </div>
-      <button class="btn" id="fBtn" onclick="sendReset()">Send reset link</button>
-      <button class="forgot" onclick="closeForgot()">Back to sign in</button>
     </div>
-    <p class="note">
-      Personal email addresses aren't accepted &mdash; use your company address.
-      If your company isn't set up yet, contact
-      <b>agvparts@weareaim.com</b>.
-    </p>
+
+    <div class="firsttime" id="firstTime">
+      <h3>First-Time User?</h3>
+      <p>Please sign up for an account. You'll need your work email address
+         and a password you choose.</p>
+      <button class="btn-outline" onclick="showRegister()">Register</button>
+    </div>
+
   </section>
 
 
@@ -717,55 +772,105 @@ function humanError(e){
 }
 
 /* ============================================================
-   Sign in — email and password, no emailed links
+   The card is one form in two modes. Login asks for email and
+   password. Register adds name and phone and creates the account.
    ============================================================ */
+let gateMode = "login";
+
+function showLogin(){
+  gateMode = "login";
+  $("gateErr").innerHTML  = "";
+  $("gateHead").textContent = "Login";
+  $("gateBtn").textContent  = "Sign In";
+  $("pw").setAttribute("autocomplete", "current-password");
+  ["fEmail","fPw","gateActions","forgotLink","firstTime"]
+    .forEach(id => $(id).hidden = false);
+  ["nameField","phoneField","backLink","gateNote","forgotBox"]
+    .forEach(id => $(id).hidden = true);
+}
+
+function showRegister(){
+  gateMode = "register";
+  $("gateErr").innerHTML  = "";
+  $("gateHead").textContent = "Register";
+  $("gateBtn").textContent  = "Create Account";
+  $("pw").setAttribute("autocomplete", "new-password");
+  ["fEmail","fPw","nameField","phoneField","gateActions","backLink","gateNote"]
+    .forEach(id => $(id).hidden = false);
+  ["forgotLink","firstTime","forgotBox"]
+    .forEach(id => $(id).hidden = true);
+  $("em").focus();
+}
+
+function gateGo(){ gateMode === "register" ? register() : signIn(); }
+
 async function signIn(){
   const email = $("em").value.trim().toLowerCase();
   const pw    = $("pw").value;
-  const name  = ($("nm") ? $("nm").value.trim() : "");
   $("gateErr").innerHTML = "";
 
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return gateErr("Enter a valid email address.");
   if(!pw) return gateErr("Enter your password.");
 
-  // phone is only needed when the account is being created, but we
-  // can't know that until the sign-in attempt fails, so check it here
-  const cc  = ($("cc") ? $("cc").value.trim() : "1") || "1";
-  const ph  = ($("ph") ? $("ph").value.trim() : "");
-  const dig = ph.replace(/\D/g, "");
-
   const btn = $("gateBtn");
   btn.disabled = true; btn.textContent = "Signing in\u2026";
 
   try{
-    let { error } = await sb.auth.signInWithPassword({ email, password: pw });
-
-    // no account yet: create one. The database decides whether the
-    // domain is allowed, so a stranger gets refused here.
-    if(error && /invalid login credentials/i.test(error.message)){
-      // creating an account: name and a callable number are required
-      if(!name) return gateErr("Enter your name \u2014 first time only.");
-      if(dig.length < 10)
-        return gateErr("Enter a phone number with area code, so we can call you back.");
-
-      const up = await sb.auth.signUp({
-        email, password: pw,
-        options:{ data: { full_name: name, phone: ph, phone_cc: cc.replace(/\D/g,"") || "1" } }
-      });
-      if(up.error) throw up.error;
-
-      if(!up.data.session){
-        gateOk("Account created. Check your email to confirm, then sign in.");
-        return;
-      }
-    }else if(error){
+    const { error } = await sb.auth.signInWithPassword({ email, password: pw });
+    if(error){
+      // no account, or the wrong password — we can't tell which, so point
+      // first-time people at Register rather than guessing for them
+      if(/invalid login credentials/i.test(error.message))
+        return gateErr("Wrong email or password. If you haven't set up an "
+                     + "account yet, use Register below.");
       throw error;
     }
     location.reload();
   }catch(e){
     gateErr(humanError(e));
   }finally{
-    btn.disabled = false; btn.textContent = "Sign in";
+    btn.disabled = false; btn.textContent = "Sign In";
+  }
+}
+
+/* Creating the account. The database decides whether the email's
+   domain belongs to a customer, so a stranger is refused here. */
+async function register(){
+  const email = $("em").value.trim().toLowerCase();
+  const pw    = $("pw").value;
+  const name  = $("nm").value.trim();
+  const cc    = $("cc").value.trim() || "1";
+  const ph    = $("ph").value.trim();
+  const dig   = ph.replace(/\D/g, "");
+  $("gateErr").innerHTML = "";
+
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return gateErr("Enter a valid email address.");
+  if(pw.length < 6) return gateErr("Pick a password of at least 6 characters.");
+  if(!name) return gateErr("Enter your name.");
+  if(dig.length < 10)
+    return gateErr("Enter a phone number with area code, so we can call you back.");
+
+  const btn = $("gateBtn");
+  btn.disabled = true; btn.textContent = "Creating\u2026";
+
+  try{
+    const up = await sb.auth.signUp({
+      email, password: pw,
+      options:{ data: { full_name: name, phone: ph, phone_cc: cc.replace(/\D/g,"") || "1" } }
+    });
+    if(up.error) throw up.error;
+
+    if(!up.data.session){
+      showLogin();
+      gateOk("Account created. Check your email to confirm, then sign in.");
+      return;
+    }
+    location.reload();
+  }catch(e){
+    gateErr(humanError(e));
+  }finally{
+    btn.disabled = false;
+    btn.textContent = gateMode === "register" ? "Create Account" : "Sign In";
   }
 }
 
@@ -780,18 +885,15 @@ function openForgot(){
   // carry over whatever they already typed
   $("fem").value = $("em").value.trim();
   $("gateErr").innerHTML = "";
-  $("gate").querySelectorAll(":scope > .field, #gateBtn, :scope > .note")
-    .forEach(el => el.hidden = true);
-  document.querySelectorAll(".forgot")[0].hidden = true;
+  $("gateHead").textContent = "Reset Password";
+  ["fEmail","fPw","nameField","phoneField","gateActions","gateNote","firstTime"]
+    .forEach(id => $(id).hidden = true);
   $("forgotBox").hidden = false;
   $("fem").focus();
 }
 
 function closeForgot(){
-  $("forgotBox").hidden = true;
-  $("gate").querySelectorAll(":scope > .field, #gateBtn, :scope > .note")
-    .forEach(el => el.hidden = false);
-  document.querySelectorAll(".forgot")[0].hidden = false;
+  showLogin();          // also hides forgotBox and restores the header
   $("em").focus();
 }
 
@@ -821,7 +923,7 @@ async function sendReset(){
   }catch(e){
     gateErr(humanError(e));
   }finally{
-    btn.disabled = false; btn.textContent = "Send reset link";
+    btn.disabled = false; btn.textContent = "Send Reset Link";
   }
 }
 
@@ -830,23 +932,22 @@ async function sendReset(){
 function showNewPassword(){
   $("gate").hidden = false;
   $("gateErr").innerHTML = "";
-  $("gate").querySelectorAll(":scope > .field, #gateBtn, .forgot, :scope > .note, #forgotBox")
-    .forEach(el => el.hidden = true);
+  ["fEmail","fPw","nameField","phoneField","gateActions","gateNote",
+   "firstTime","forgotBox"].forEach(id => $(id).hidden = true);
   $("who").hidden = true;   // nothing to sign out of yet
-  $("gate").querySelector("h2").textContent = "Set a new password";
-  $("gate").querySelector("p").innerHTML =
-    "Choose a new password for your account. At least 6 characters.";
+  $("gateHead").textContent = "Set a New Password";
 
   if(!$("npBox")){
     const box = document.createElement("div");
     box.id = "npBox";
     box.innerHTML = `
-      <div class="field">
-        <label for="np">New password</label>
+      <p class="lintro">Choose a new password for your account. At least 6 characters.</p>
+      <div class="lfield">
+        <label for="np">New Password:</label>
         <input id="np" type="password" autocomplete="new-password"
                onkeydown="if(event.key==='Enter')setNewPassword()">
       </div>
-      <button class="btn" id="npBtn" onclick="setNewPassword()">Save password</button>`;
+      <button class="btn-signin" id="npBtn" onclick="setNewPassword()">Save Password</button>`;
     $("gateErr").after(box);
   }
   $("np").focus();
@@ -872,7 +973,7 @@ async function setNewPassword(){
     location.replace(location.pathname);   // straight in with the new password
   }catch(e){
     gateErr(humanError(e));
-    btn.disabled = false; btn.textContent = "Save password";
+    btn.disabled = false; btn.textContent = "Save Password";
   }
 }
 

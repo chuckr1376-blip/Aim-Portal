@@ -225,12 +225,44 @@ tr:last-child td{border-bottom:0}
 .sub-h:first-child{margin-top:0}
 
 /* ---------- sign in ---------- */
-.gate{max-width:430px;margin:64px auto;background:#fff;border:1px solid var(--line);
-  border-top:3px solid var(--red);border-radius:11px;padding:30px}
-.gate h2{margin:0 0 6px;font-family:Montserrat,sans-serif;font-size:22px;
-  font-weight:700;letter-spacing:-.02em;color:var(--navy)}
-.gate p{margin:0 0 20px;font-size:14px;color:var(--steel)}
-.gate .f{margin-bottom:14px}
+.gate{max-width:620px;margin:52px auto}
+.logincard{background:#fff;border:1px solid var(--line);border-radius:2px;
+  overflow:hidden}
+.logincard-head{background:var(--navy);color:#fff;padding:12px 22px;
+  font-family:Montserrat,sans-serif;font-size:14px;font-weight:700;
+  letter-spacing:.09em;text-transform:uppercase}
+.logincard-body{padding:24px 22px 28px}
+
+.lfield{margin-bottom:18px}
+.lfield label{display:block;font-family:inherit;font-size:14px;font-weight:400;
+  letter-spacing:0;text-transform:none;color:var(--ink);margin-bottom:7px}
+.lfield input{background:#e9eefa;border:1px solid #d7dded;border-radius:2px;
+  padding:10px 12px}
+.lfield input:focus{background:#fff}
+.lfield > input,.lfield .pw-wrap{max-width:430px}
+
+.lrow{display:flex;align-items:center;gap:28px;flex-wrap:wrap;margin-top:24px}
+.btn-signin{background:var(--navy);color:#fff;border:0;border-radius:2px;
+  padding:13px 32px;font:inherit;font-family:Montserrat,sans-serif;font-size:14px;
+  font-weight:700;letter-spacing:.09em;text-transform:uppercase;cursor:pointer}
+.btn-signin:hover{background:#081a35}
+.btn-signin:disabled{background:#c3cad3;cursor:not-allowed}
+.forgot{background:none;border:0;padding:2px 0;font:inherit;font-size:13.5px;
+  font-weight:600;color:var(--orange);cursor:pointer;text-decoration:underline;
+  text-underline-offset:3px}
+.forgot:hover{color:#a94a06}
+
+/* no self-signup here — staff get a link emailed instead */
+.firsttime{background:#e7eef8;border:1px solid var(--line);border-top:0;
+  padding:26px 22px 30px}
+.firsttime h3{margin:0 0 11px;font-family:Montserrat,sans-serif;font-size:21px;
+  font-weight:700;color:var(--navy)}
+.firsttime p{margin:0 0 21px;font-size:14px;color:#3f4a57}
+.btn-outline{background:#fff;border:2px solid var(--navy);color:var(--navy);
+  border-radius:2px;padding:12px 28px;font:inherit;font-family:Montserrat,sans-serif;
+  font-size:14px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  cursor:pointer}
+.btn-outline:hover{background:var(--navy);color:#fff}
 .msg-org{font-weight:600;font-size:11px;letter-spacing:.4px;color:var(--steel);
   margin-left:6px;padding:1px 5px;border-radius:3px;background:#eef1f6}
 
@@ -252,7 +284,6 @@ tr:last-child td{border-bottom:0}
   background:none;border:0;padding:4px 6px;cursor:pointer;
   font:inherit;font-size:12px;font-weight:600;color:var(--steel)}
 .pw-eye:hover{text-decoration:underline}
-.gate .btn{width:100%;justify-content:center}
 
 /* ---------- responsive ---------- */
 @media (max-width:1000px){
@@ -560,28 +591,46 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
 </div>
 
 <section class="gate" id="gate" hidden>
-  <h2>AIM staff</h2>
-  <p>Your weareaim.com address and password.</p>
-  <div id="gateMsg"></div>
-  <div class="f">
-    <label for="em">Email</label>
-    <input id="em" type="email" autocomplete="email" placeholder="you@weareaim.com">
-  </div>
-  <div class="f">
-    <label for="pw">Password</label>
-    <div class="pw-wrap">
-      <input id="pw" type="password" autocomplete="current-password"
-             onkeydown="if(event.key==='Enter')signIn()">
-      <button type="button" class="pw-eye" id="pwEye"
-              onclick="togglePw()" aria-label="Show password">Show</button>
+
+  <div class="logincard">
+    <div class="logincard-head">Login &mdash; AIM Staff</div>
+    <div class="logincard-body">
+
+      <div id="gateMsg"></div>
+
+      <div class="lfield">
+        <label for="em">Email Address:</label>
+        <input id="em" type="email" autocomplete="email" placeholder="you@weareaim.com"
+               onkeydown="if(event.key==='Enter')signIn()">
+      </div>
+
+      <div class="lfield">
+        <label for="pw">Password:</label>
+        <div class="pw-wrap">
+          <input id="pw" type="password" autocomplete="current-password"
+                 onkeydown="if(event.key==='Enter')signIn()">
+          <button type="button" class="pw-eye" id="pwEye"
+                  onclick="togglePw()" aria-label="Show password">Show</button>
+        </div>
+      </div>
+
+      <div class="lrow">
+        <button class="btn-signin" id="gateBtn" onclick="signIn()">Sign In</button>
+        <button class="forgot" onclick="sendReset()">Forgot Password?</button>
+      </div>
+
+      <p class="note">Customers sign in on the client portal, not here.</p>
+
     </div>
   </div>
-  <button class="btn" id="gateBtn" onclick="signIn()">Sign in</button>
-  <p class="note">
-    <a href="#" onclick="sendReset();return false;">Forgot password?</a>
-    &nbsp;&middot;&nbsp; Never set one? Use that too &mdash; it emails you a link.
-  </p>
-  <p class="note">Customers sign in on the client portal, not here.</p>
+
+  <div class="firsttime">
+    <h3>First-Time User?</h3>
+    <p>Staff logins aren't self-serve. Type your weareaim.com address above,
+       then press below and we'll email you a link to set your password.</p>
+    <button class="btn-outline" onclick="sendReset()">Email Me a Link</button>
+  </div>
+
 </section>
 
 <main class="board" id="board" hidden>
@@ -695,7 +744,7 @@ async function signIn(){
     if(error) throw error;
     location.reload();
   }catch(e){ fail(humanError(e)); }
-  finally{ btn.disabled = false; btn.textContent = "Sign in"; }
+  finally{ btn.disabled = false; btn.textContent = "Sign In"; }
 }
 function togglePw(){
   const f = $("pw"), b = $("pwEye");
