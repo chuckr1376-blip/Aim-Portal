@@ -60,11 +60,18 @@ body{
 .tick span{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
   color:#8fa6c6;font-weight:500}
 .tick.alert b{color:#ff8b9c}
+/* the wrapper exists only so the ticks can be hidden as a group;
+   display:contents keeps them as flex children of the strip */
+.ticks{display:contents}
 .whoami{margin-left:auto;align-self:center;display:flex;align-items:center;
   gap:14px;font-size:13px;color:#a8bcd8}
 .linkbtn{background:none;border:1px solid rgba(255,255,255,.3);color:#fff;
   border-radius:6px;padding:5px 12px;font:inherit;font-size:12.5px;cursor:pointer}
 .linkbtn:hover{background:rgba(255,255,255,.1)}
+
+/* a class with display: set otherwise beats the hidden attribute,
+   which is why the board and the stat ticks leaked onto the sign-in */
+[hidden]{display:none !important}
 
 /* ---------- two panes ---------- */
 .board{max-width:1500px;margin:0 auto;padding:20px 22px 60px;
@@ -578,11 +585,13 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
 <div class="strip">
   <div class="strip-in">
     <h1>Dispatch</h1>
-    <div class="tick" id="tickAcc"><b id="tkAcc">—</b><span>Accounts</span></div>
-    <div class="tick" id="tickOpen"><b id="tkOpen">—</b><span>Open</span></div>
-    <div class="tick" id="tickCli"><b id="tkCli">—</b><span>Clients</span></div>
-    <div class="tick" id="tickStf"><b id="tkStf">—</b><span>AIM staff</span></div>
-    <div class="tick" id="tickLow"><b id="tkLow">—</b><span>Low hours</span></div>
+    <div class="ticks" id="ticks" hidden>
+      <div class="tick" id="tickAcc"><b id="tkAcc">—</b><span>Accounts</span></div>
+      <div class="tick" id="tickOpen"><b id="tkOpen">—</b><span>Open</span></div>
+      <div class="tick" id="tickCli"><b id="tkCli">—</b><span>Clients</span></div>
+      <div class="tick" id="tickStf"><b id="tkStf">—</b><span>AIM staff</span></div>
+      <div class="tick" id="tickLow"><b id="tkLow">—</b><span>Low hours</span></div>
+    </div>
     <div class="whoami" id="who" hidden>
       <span id="whoName"></span>
       <button class="linkbtn" onclick="signOut()">Sign out</button>
@@ -799,6 +808,7 @@ async function boot(){
 
   $("whoName").textContent = me.email;
   $("who").hidden = false;
+  $("ticks").hidden = false;
   $("gate").hidden = true;
   $("board").hidden = false;
   await loadAll();
