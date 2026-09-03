@@ -507,6 +507,8 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
 
   <section class="gate" id="gate">
 
+   <div id="loginScreen">
+
     <div class="logincard">
       <div class="logincard-head" id="gateHead">Login</div>
       <div class="logincard-body">
@@ -516,40 +518,19 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
         <div class="lfield" id="fEmail">
           <label for="em">Email Address:</label>
           <input id="em" type="email" autocomplete="email"
-                 onkeydown="if(event.key==='Enter')gateGo()">
+                 onkeydown="if(event.key==='Enter')signIn()">
         </div>
 
         <div class="lfield" id="fPw">
           <label for="pw">Password:</label>
           <input id="pw" type="password" autocomplete="current-password"
-                 onkeydown="if(event.key==='Enter')gateGo()">
-        </div>
-
-        <!-- shown only when registering -->
-        <div class="lfield" id="nameField" hidden>
-          <label for="nm">Full Name:</label>
-          <input id="nm" type="text" autocomplete="name">
-        </div>
-        <div class="lfield" id="phoneField" hidden>
-          <label for="ph">Phone &mdash; so we can call you back:</label>
-          <div class="phonerow">
-            <span class="cc">+</span>
-            <input id="cc" class="ccin mono" value="1" inputmode="numeric" maxlength="3">
-            <input id="ph" type="tel" autocomplete="tel" placeholder="704 246 3961">
-          </div>
+                 onkeydown="if(event.key==='Enter')signIn()">
         </div>
 
         <div class="lrow" id="gateActions">
-          <button class="btn-signin" id="gateBtn" onclick="gateGo()">Sign In</button>
+          <button class="btn-signin" id="gateBtn" onclick="signIn()">Sign In</button>
           <button class="forgot" id="forgotLink" onclick="openForgot()">Forgot Password?</button>
-          <button class="forgot" id="backLink" hidden onclick="showLogin()">Back to sign in</button>
         </div>
-
-        <p class="note" id="gateNote" hidden>
-          Personal email addresses aren't accepted &mdash; use your company address.
-          If your company isn't set up yet, contact
-          <b>agvparts@weareaim.com</b>.
-        </p>
 
         <div id="forgotBox" hidden>
           <p>We'll email you a link. It's good for one hour.</p>
@@ -573,6 +554,64 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
          and a password you choose.</p>
       <button class="btn-outline" onclick="showRegister()">Register</button>
     </div>
+
+   </div><!-- /loginScreen -->
+
+   <!-- Register is its own screen. Pressing Register hides the login card
+        entirely and shows this instead, so there is never a question of
+        whether you are signing in or signing up. -->
+   <div id="regScreen" hidden>
+
+    <div class="logincard">
+      <div class="logincard-head">Create Your Account</div>
+      <div class="logincard-body">
+
+        <div id="regErr"></div>
+
+        <p class="lintro">Fill in all four boxes, then press Create My Account.
+           We'll email you a link to confirm the address before you can sign in.</p>
+
+        <div class="lfield">
+          <label for="nm">Full Name:</label>
+          <input id="nm" type="text" autocomplete="name">
+        </div>
+
+        <div class="lfield">
+          <label for="ph">Phone &mdash; so we can call you back:</label>
+          <div class="phonerow">
+            <span class="cc">+</span>
+            <input id="cc" class="ccin mono" value="1" inputmode="numeric" maxlength="3">
+            <input id="ph" type="tel" autocomplete="tel" placeholder="704 246 3961">
+          </div>
+        </div>
+
+        <div class="lfield">
+          <label for="rem">Work Email Address:</label>
+          <input id="rem" type="email" autocomplete="email">
+        </div>
+
+        <div class="lfield">
+          <label for="rpw">Create a Password:</label>
+          <input id="rpw" type="password" autocomplete="new-password"
+                 placeholder="At least 6 characters"
+                 onkeydown="if(event.key==='Enter')register()">
+        </div>
+
+        <div class="lrow">
+          <button class="btn-signin" id="regBtn" onclick="register()">Create My Account</button>
+          <button class="forgot" onclick="showLogin()">Back to sign in</button>
+        </div>
+
+        <p class="note">
+          Personal email addresses aren't accepted &mdash; use your company address.
+          If your company isn't set up yet, contact
+          <b>agvparts@weareaim.com</b>.
+        </p>
+
+      </div>
+    </div>
+
+   </div><!-- /regScreen -->
 
   </section>
 
@@ -740,6 +779,7 @@ let entries = [];     // time logged against them
 
 /* ---------- messages ---------- */
 function gateErr(msg){ $("gateErr").innerHTML = '<div class="err">'+esc(msg)+'</div>'; }
+function regErr(msg){  $("regErr").innerHTML  = '<div class="err">'+esc(msg)+'</div>'; }
 function gateOk(msg){  $("gateErr").innerHTML = '<div class="toast">'+msg+'</div>'; }
 function toast(msg){   $("toast").innerHTML   = '<div class="toast">'+msg+'</div>'; }
 function toastErr(msg){$("toast").innerHTML   = '<div class="err">'+esc(msg)+'</div>'; }
@@ -775,34 +815,25 @@ function humanError(e){
    The card is one form in two modes. Login asks for email and
    password. Register adds name and phone and creates the account.
    ============================================================ */
-let gateMode = "login";
-
 function showLogin(){
-  gateMode = "login";
-  $("gateErr").innerHTML  = "";
+  $("gateErr").innerHTML = "";
+  $("regErr").innerHTML  = "";
   $("gateHead").textContent = "Login";
-  $("gateBtn").textContent  = "Sign In";
-  $("pw").setAttribute("autocomplete", "current-password");
   ["fEmail","fPw","gateActions","forgotLink","firstTime"]
     .forEach(id => $(id).hidden = false);
-  ["nameField","phoneField","backLink","gateNote","forgotBox"]
-    .forEach(id => $(id).hidden = true);
-}
-
-function showRegister(){
-  gateMode = "register";
-  $("gateErr").innerHTML  = "";
-  $("gateHead").textContent = "Register";
-  $("gateBtn").textContent  = "Create Account";
-  $("pw").setAttribute("autocomplete", "new-password");
-  ["fEmail","fPw","nameField","phoneField","gateActions","backLink","gateNote"]
-    .forEach(id => $(id).hidden = false);
-  ["forgotLink","firstTime","forgotBox"]
-    .forEach(id => $(id).hidden = true);
+  $("forgotBox").hidden   = true;
+  $("regScreen").hidden   = true;
+  $("loginScreen").hidden = false;
   $("em").focus();
 }
 
-function gateGo(){ gateMode === "register" ? register() : signIn(); }
+function showRegister(){
+  $("gateErr").innerHTML = "";
+  $("regErr").innerHTML  = "";
+  $("loginScreen").hidden = true;
+  $("regScreen").hidden   = false;
+  $("nm").focus();
+}
 
 async function signIn(){
   const email = $("em").value.trim().toLowerCase();
@@ -818,60 +849,39 @@ async function signIn(){
   try{
     const { error } = await sb.auth.signInWithPassword({ email, password: pw });
     if(error){
-      /* Supabase reports "invalid login credentials" both for a wrong
-         password and for an email with no account — it won't say which.
-         This page used to create the account at exactly this point, and
-         people learned that habit. Telling them "wrong password" instead
-         is a dead end: a first-timer has no password to be wrong about.
-         So carry them into the register form with what they typed still
-         in the boxes. Anyone who merely mistyped has Forgot Password
-         right there, and if the email really is registered, Create
-         Account says so. */
-      if(/invalid login credentials/i.test(error.message)){
-        offerRegister();
-        return;
-      }
+      // no account, or the wrong password — we can't tell which, so point
+      // first-time people at Register rather than guessing for them
+      if(/invalid login credentials/i.test(error.message))
+        return gateErr("Wrong email or password. If you haven't set up an "
+                     + "account yet, use Register below.");
       throw error;
     }
     location.reload();
   }catch(e){
     gateErr(humanError(e));
   }finally{
-    btn.disabled = false;
-    btn.textContent = gateMode === "register" ? "Create Account" : "Sign In";
+    btn.disabled = false; btn.textContent = "Sign In";
   }
-}
-
-/* The bridge from a failed sign-in. Register mode, but with Forgot
-   Password left reachable, since we don't know which of the two
-   problems this person actually has. */
-function offerRegister(){
-  showRegister();                    // clears gateErr, so the note goes after
-  $("forgotLink").hidden = false;
-  gateErr("No account found for that email \u2014 or the password doesn't match. "
-        + "New here? Add your name and phone, then press Create Account. "
-        + "Been here before? Use Forgot Password.");
-  $("nm").focus();
 }
 
 /* Creating the account. The database decides whether the email's
    domain belongs to a customer, so a stranger is refused here. */
 async function register(){
-  const email = $("em").value.trim().toLowerCase();
-  const pw    = $("pw").value;
+  const email = $("rem").value.trim().toLowerCase();
+  const pw    = $("rpw").value;
   const name  = $("nm").value.trim();
   const cc    = $("cc").value.trim() || "1";
   const ph    = $("ph").value.trim();
   const dig   = ph.replace(/\D/g, "");
-  $("gateErr").innerHTML = "";
+  $("regErr").innerHTML = "";
 
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return gateErr("Enter a valid email address.");
-  if(pw.length < 6) return gateErr("Pick a password of at least 6 characters.");
-  if(!name) return gateErr("Enter your name.");
+  if(!name) return regErr("Enter your name.");
   if(dig.length < 10)
-    return gateErr("Enter a phone number with area code, so we can call you back.");
+    return regErr("Enter a phone number with area code, so we can call you back.");
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return regErr("Enter a valid work email address.");
+  if(pw.length < 6) return regErr("Pick a password of at least 6 characters.");
 
-  const btn = $("gateBtn");
+  const btn = $("regBtn");
   btn.disabled = true; btn.textContent = "Creating\u2026";
 
   try{
@@ -888,10 +898,9 @@ async function register(){
     }
     location.reload();
   }catch(e){
-    gateErr(humanError(e));
+    regErr(humanError(e));
   }finally{
-    btn.disabled = false;
-    btn.textContent = gateMode === "register" ? "Create Account" : "Sign In";
+    btn.disabled = false; btn.textContent = "Create My Account";
   }
 }
 
@@ -907,8 +916,7 @@ function openForgot(){
   $("fem").value = $("em").value.trim();
   $("gateErr").innerHTML = "";
   $("gateHead").textContent = "Reset Password";
-  ["fEmail","fPw","nameField","phoneField","gateActions","gateNote","firstTime"]
-    .forEach(id => $(id).hidden = true);
+  ["fEmail","fPw","gateActions","firstTime"].forEach(id => $(id).hidden = true);
   $("forgotBox").hidden = false;
   $("fem").focus();
 }
@@ -953,8 +961,10 @@ async function sendReset(){
 function showNewPassword(){
   $("gate").hidden = false;
   $("gateErr").innerHTML = "";
-  ["fEmail","fPw","nameField","phoneField","gateActions","gateNote",
-   "firstTime","forgotBox"].forEach(id => $(id).hidden = true);
+  $("regScreen").hidden = true;
+  $("loginScreen").hidden = false;
+  ["fEmail","fPw","gateActions","firstTime","forgotBox"]
+    .forEach(id => $(id).hidden = true);
   $("who").hidden = true;   // nothing to sign out of yet
   $("gateHead").textContent = "Set a New Password";
 
@@ -1611,7 +1621,7 @@ function lockDown(){
 }
 
 /* ---------- inline handlers need these on window ---------- */
-Object.assign(window, { signIn, signOut, addRow, rmRow, setF, submitReq,
+Object.assign(window, { signIn, showLogin, showRegister, register, signOut, addRow, rmRow, setF, submitReq,
   claimSite, loadThread, postMsg, editMsg, saveMsg, openReply,
   openProfile, closeProfile, saveProfile,
   openBeta, closeBeta, sendFeedback,
