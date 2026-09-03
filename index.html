@@ -135,6 +135,10 @@
   .btn-ghost{background:#fff;border:1px solid #ccd3da;color:var(--navy);font-weight:600}
   .btn-ghost:hover{background:#eef1f5}
   .note{font-size:12.5px;color:var(--slate);margin-top:14px}
+  .doneline{font-size:15px;line-height:1.6;color:var(--ink);margin:0 0 14px}
+  .donesub{font-size:13.5px;line-height:1.6;color:#5d6874;margin:18px 0 20px;
+           padding-top:16px;border-top:1px solid var(--line)}
+
   .err{
     background:#fdecea;border-left:3px solid var(--red);color:#8c2b20;
     padding:9px 12px;font-size:13.5px;margin-bottom:14px;border-radius:0 3px 3px 0;
@@ -568,9 +572,6 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
 
         <div id="regErr"></div>
 
-        <p class="lintro">Fill in all four boxes, then press Create My Account.
-           We'll email you a link to confirm the address before you can sign in.</p>
-
         <div class="lfield">
           <label for="nm">Full Name:</label>
           <input id="nm" type="text" autocomplete="name">
@@ -612,6 +613,28 @@ l0 584 -22 15 c-26 18 -142 22 -170 5z M5330 1261 c-95 -19 -171 -92 -206
     </div>
 
    </div><!-- /regScreen -->
+
+   <!-- Where you land after Create My Account. The instruction people
+        need is here, at the size of an instruction, at the moment it
+        applies. -->
+   <div id="doneScreen" hidden>
+    <div class="logincard">
+      <div class="logincard-head">Check Your Email</div>
+      <div class="logincard-body">
+        <p class="doneline">Your account is created. Before you can sign in,
+           we need to confirm it's your address.</p>
+        <p class="doneline">We've sent a link to
+           <b id="doneAddr" class="mono"></b>. Open it and click the link,
+           then come back here and sign in with the password you just chose.</p>
+        <p class="donesub">Nothing after a few minutes? Check the junk folder.
+           Still nothing, or the address above is wrong &mdash; email
+           <b>agvparts@weareaim.com</b> and we'll sort it out.</p>
+        <div class="lrow">
+          <button class="btn-signin" onclick="showLogin()">Back to Sign In</button>
+        </div>
+      </div>
+    </div>
+   </div><!-- /doneScreen -->
 
   </section>
 
@@ -823,6 +846,7 @@ function showLogin(){
     .forEach(id => $(id).hidden = false);
   $("forgotBox").hidden   = true;
   $("regScreen").hidden   = true;
+  $("doneScreen").hidden  = true;
   $("loginScreen").hidden = false;
   $("em").focus();
 }
@@ -831,8 +855,18 @@ function showRegister(){
   $("gateErr").innerHTML = "";
   $("regErr").innerHTML  = "";
   $("loginScreen").hidden = true;
+  $("doneScreen").hidden  = true;
   $("regScreen").hidden   = false;
   $("nm").focus();
+}
+
+/* Confirmation. Shows the address back to them, because a typo here is
+   the one mistake that produces silence rather than an error. */
+function showDone(email){
+  $("doneAddr").textContent = email;
+  $("loginScreen").hidden = true;
+  $("regScreen").hidden   = true;
+  $("doneScreen").hidden  = false;
 }
 
 async function signIn(){
@@ -892,13 +926,16 @@ async function register(){
     if(up.error) throw up.error;
 
     if(!up.data.session){
-      showLogin();
-      gateOk("Account created. Check your email to confirm, then sign in.");
+      showDone(email);
       return;
     }
     location.reload();
   }catch(e){
-    regErr(humanError(e));
+    const m = (e?.message || "").toLowerCase();
+    regErr(m.includes("user already registered")
+      ? "That email already has an account. Go back to sign in \u2014 and if "
+        + "you don't know the password, use Forgot Password there."
+      : humanError(e));
   }finally{
     btn.disabled = false; btn.textContent = "Create My Account";
   }
@@ -961,7 +998,8 @@ async function sendReset(){
 function showNewPassword(){
   $("gate").hidden = false;
   $("gateErr").innerHTML = "";
-  $("regScreen").hidden = true;
+  $("regScreen").hidden  = true;
+  $("doneScreen").hidden = true;
   $("loginScreen").hidden = false;
   ["fEmail","fPw","gateActions","firstTime","forgotBox"]
     .forEach(id => $(id).hidden = true);
