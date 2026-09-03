@@ -818,19 +818,40 @@ async function signIn(){
   try{
     const { error } = await sb.auth.signInWithPassword({ email, password: pw });
     if(error){
-      // no account, or the wrong password — we can't tell which, so point
-      // first-time people at Register rather than guessing for them
-      if(/invalid login credentials/i.test(error.message))
-        return gateErr("Wrong email or password. If you haven't set up an "
-                     + "account yet, use Register below.");
+      /* Supabase reports "invalid login credentials" both for a wrong
+         password and for an email with no account — it won't say which.
+         This page used to create the account at exactly this point, and
+         people learned that habit. Telling them "wrong password" instead
+         is a dead end: a first-timer has no password to be wrong about.
+         So carry them into the register form with what they typed still
+         in the boxes. Anyone who merely mistyped has Forgot Password
+         right there, and if the email really is registered, Create
+         Account says so. */
+      if(/invalid login credentials/i.test(error.message)){
+        offerRegister();
+        return;
+      }
       throw error;
     }
     location.reload();
   }catch(e){
     gateErr(humanError(e));
   }finally{
-    btn.disabled = false; btn.textContent = "Sign In";
+    btn.disabled = false;
+    btn.textContent = gateMode === "register" ? "Create Account" : "Sign In";
   }
+}
+
+/* The bridge from a failed sign-in. Register mode, but with Forgot
+   Password left reachable, since we don't know which of the two
+   problems this person actually has. */
+function offerRegister(){
+  showRegister();                    // clears gateErr, so the note goes after
+  $("forgotLink").hidden = false;
+  gateErr("No account found for that email \u2014 or the password doesn't match. "
+        + "New here? Add your name and phone, then press Create Account. "
+        + "Been here before? Use Forgot Password.");
+  $("nm").focus();
 }
 
 /* Creating the account. The database decides whether the email's
